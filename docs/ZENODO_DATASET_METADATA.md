@@ -93,7 +93,7 @@ https://github.com/FrancisRVillatoro/backward-error-purcell-egervary-castillo-ma
 
 Relation:
 
-Is supplemented by this software repository.
+Is supplement to this software repository.
 
 ## Associated manuscript
 
