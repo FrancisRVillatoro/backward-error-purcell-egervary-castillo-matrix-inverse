@@ -1,0 +1,19 @@
+{
+  "outputs": [
+    "dd_seven_inequalities.csv",
+    "interchanges_all_recovered_global.csv",
+    "eta_reliability_all_recovered.csv",
+    "theory_balanced_block_metrics.csv",
+    "interchanges_balanced_by_family_n.csv",
+    "paired_common_quantiles.csv",
+    "paired_common_method_ratios.csv",
+    "gamma_over_n_alpha_fits.csv",
+    "s_q95_cell_audit.csv",
+    "s_q95_summary.csv"
+  ],
+  "sample_size": 2000,
+  "selected_blocks": 832,
+  "selected_records": 16640000,
+  "status": "THEORY_AUDIT_COMPLETE",
+  "tasks": 999
+}

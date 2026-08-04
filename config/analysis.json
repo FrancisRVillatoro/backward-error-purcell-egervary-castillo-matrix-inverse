@@ -1,0 +1,23 @@
+{
+  "balanced_sample_size": 2000,
+  "balanced_max_n": 512,
+  "complete_core_max_n": 181,
+  "bootstrap_replicates": 2000,
+  "quantiles": [0.5, 0.9, 0.95, 0.99],
+  "inverse_metrics": [
+    "rRu",
+    "gamma_over_n",
+    "eta_over_u",
+    "max_tableau_norm_inf",
+    "max_B_norm_inf",
+    "max_inverse_tableau_norm_inf",
+    "max_multiplier",
+    "elapsed_seconds"
+  ],
+  "solution_metrics": [
+    "forward_error_2",
+    "normwise_backward_error_inf",
+    "componentwise_backward_error",
+    "relative_residual_inf"
+  ]
+}

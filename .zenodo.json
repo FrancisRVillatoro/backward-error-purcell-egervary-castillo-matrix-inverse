@@ -1,0 +1,33 @@
+{
+  "creators": [
+    {
+      "name": "Villatoro, Francisco R.",
+      "affiliation": "Universidad de Málaga"
+    }
+  ],
+  "title": "Backward Error of the Purcell–Egerváry–Castillo Matrix Inverse",
+  "description": "Frozen software and reproducibility materials for the numerical experiments accompanying the manuscript 'Backward Error of the Matrix Inverse in the Purcell–Egerváry–Castillo Pivoting Transformation'. The repository contains deterministic campaign generation, the Purcell–Egerváry–Castillo pivoting variants, recovery and population certification, diagonal-dominance audits, defect replay, high-precision validation, canonical post-processing, compact final reports, and manuscript sources. A separate Zenodo dataset record preserves the public reproducibility asset.",
+  "version": "1.0.0",
+  "access_right": "open",
+  "keywords": [
+    "numerical linear algebra",
+    "matrix inversion",
+    "backward error",
+    "floating-point arithmetic",
+    "pivoting",
+    "Purcell method",
+    "Egervary rank reduction",
+    "Castillo transformation",
+    "reproducible research"
+  ],
+  "license": "mit",
+  "upload_type": "software",
+  "language": "eng",
+  "related_identifiers": [
+    {
+      "identifier": "https://doi.org/10.5281/zenodo.21794454",
+      "relation": "isSupplementTo",
+      "resource_type": "dataset"
+    }
+  ]
+}

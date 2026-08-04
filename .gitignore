@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+*~
+*.swp
+
+# HPC transient files
+tmp/
+release_stage/
+*.out
+*.err
+
+# Raw and bulk recovered campaign data belong on Zenodo, not in Git
+raw/
+results_raw/
+recovered/
+
+# Keep the compact recovery reports and population certificates
+!reports/recovered/
+!reports/recovered/**
+zenodo_stage/
+*.tar
+*.tar.gz
+*.tar.zst
+*.tar.zst.part-*
+*.npz
+*.npy
+*.parquet
+
+# Keep compact CSV reports only when explicitly staged

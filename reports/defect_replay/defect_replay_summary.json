@@ -1,0 +1,30 @@
+{
+  "R0_C0_R0_C1_path_mismatches": 0,
+  "array_job_ids": [
+    "1732768"
+  ],
+  "blocks": 260,
+  "dtypes": [
+    "float32",
+    "float64"
+  ],
+  "merged_raw_file": "/mnt/home/users/tic_118_uma/frv/fscratch/castillo_stability_campaign/results/defect_replay/defect_replay_records.csv.gz",
+  "method_dtype_records": 4160000,
+  "methods": [
+    "R0_C0",
+    "R0_C1",
+    "R1_C1",
+    "R2_C2"
+  ],
+  "outputs": [
+    "defect_block_quantiles.csv",
+    "defect_paired_summary.csv",
+    "defect_paired_family_summary.csv",
+    "defect_control_R0C0_vs_R0C1.csv",
+    "defect_precision_gate_failures.csv"
+  ],
+  "precision_gate_failures": 0,
+  "sample_size_per_block": 2000,
+  "selected_matrices": 520000,
+  "status": "DEFECT_REPLAY_COMPLETE"
+}

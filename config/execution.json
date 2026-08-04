@@ -1,0 +1,12 @@
+{
+  "array_tasks": 999,
+  "gzip_compresslevel": 1,
+  "spectral_norm_iterations": 6,
+  "case_assignment": "global_case_index_mod_num_tasks",
+  "row_score_update": "recursive_AV_for_R1_R2",
+  "gamma_inf": "exact",
+  "gamma_2": "deterministic_fixed_iteration_estimate",
+  "gamma_2_exact": "smoke_only",
+  "inverse_tableau_reliability_threshold": 0.01,
+  "output_layout": "gzip_csv_shards"
+}

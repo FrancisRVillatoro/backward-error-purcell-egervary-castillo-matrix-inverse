@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the software release, the reproducibility dataset, and the associated manuscript."
+title: "Backward Error of the Purcell–Egerváry–Castillo Matrix Inverse"
+type: software
+version: 1.0.0
+license: MIT
+authors:
+  - given-names: Francisco R.
+    family-names: Villatoro
+    affiliation: Universidad de Málaga
+repository-code: "https://github.com/FrancisRVillatoro/backward-error-purcell-egervary-castillo-matrix-inverse"
+url: "https://github.com/FrancisRVillatoro/backward-error-purcell-egervary-castillo-matrix-inverse"
+abstract: >-
+  Frozen software and reproducibility materials for the numerical experiments
+  accompanying the manuscript “Backward Error of the Matrix Inverse in the
+  Purcell–Egerváry–Castillo Pivoting Transformation”. The release includes
+  implementations of the pivoting variants, deterministic campaign generation,
+  recovery and population certification, diagonal-dominance audits, defect
+  replay, high-precision validation, and canonical post-processing.
+keywords:
+  - numerical linear algebra
+  - matrix inversion
+  - backward error
+  - floating-point arithmetic
+  - pivoting
+  - Purcell method
+  - Egerváry rank reduction
+  - Castillo transformation
+  - reproducible research

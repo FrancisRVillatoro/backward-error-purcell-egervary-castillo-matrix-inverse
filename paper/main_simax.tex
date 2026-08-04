@@ -1,0 +1,1462 @@
+\documentclass[review,onefignum,onetabnum]{siamart251216}
+
+% Mathematical symbols. The SIAM class already loads amsmath.
+\usepackage{amssymb}
+
+% Tables and figures.
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+% Oxford comma in multiple cleveref references.
+\newcommand{\creflastconjunction}{, and~}
+
+% The theorem, lemma, corollary, proposition, definition, and proof
+% environments are already defined by siamart251216.
+\newsiamremark{remark}{Remark}
+\newsiamremark{observation}{Observation}
+
+% Custom mathematical notation.
+\newcommand{\fl}{\operatorname{fl}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+
+\emergencystretch=1em
+
+\newcommand{\submissiondate}{August 03, 2026}
+
+\title{Backward Error of the Matrix Inverse in the
+Purcell--Egerv\'ary--Castillo Pivoting Transformation%
+\thanks{Submitted to the editors \submissiondate.}}
+
+% Running headers. The abbreviated title must not exceed 50 characters.
+\headers{Backward Error of a Matrix Inverse}{F. R. Villatoro}
+
+\author{Francisco R. Villatoro%
+\thanks{Escuela de Ingenier\'ias Industriales, Universidad de M\'alaga,
+29071 M\'alaga, Spain
+(\email{frvillatoro@uma.es}). \funding{This work was  supported by the Universidad de M\'alaga, Spain,
+through project PPRO-B4-2026-004 of its Plan Propio de Investigaci\'on, Transferencia y Divulgaci\'on Cient\'ifica.}}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The pivoting transformation of Castillo, Cobo, Jubete, Pruneda, and Castillo
+[SIAM J. Matrix Anal. Appl., 22 (2000), pp.~666--681] computes a matrix inverse
+through a sequence of interpretable tableaux. Algebraically the transformation is
+the vector method of Purcell (1953), rediscovered repeatedly as an implicit LU or
+direct projection method; but the backward error of the explicitly formed inverse
+has not been analyzed. We prove the exact residual decomposition
+$R_N=D_N-AE_{N+1}$ into a transformation defect, created when the elementary
+transformations are formed from rounded quantities, and an accumulated application
+error of Wilkinson type. Thus a bound on the latter alone is not a backward-error
+bound for the inverse. We further derive a row-wise representation of $D_N$, a
+growth factor with an unavoidable linear floor in the number of steps, and an exact
+growth bound for strictly row-diagonally dominant matrices. Two numerical campaigns,
+including $14.7$ million matrices, show no observed violation of the rigorous growth-based estimate on the
+reliability-screened comparisons, while it overestimates by a median
+factor $2.3\times10^{5}$, with the pessimism overwhelmingly concentrated in the
+accumulation term. The transformation defect is the sharpest ex-post diagnostic
+measured, while the minimum scaled pivot is the dominant local indicator of its
+formation. A paired replay shows that row pivoting more than doubles the defect on
+two diagonally dominant ensembles while changing the application term only
+marginally; the effect on the final residual is strongly modulated by the baseline
+weight of the defect. Finally, on an orthogonal family with $\kappa_2(A)=1$ the
+first-nonzero rule produces tableau growth asymptotic to $\sqrt2/\varepsilon$, and
+the campaign records inverse backward error exceeding $10^7u$ at unit condition
+number.
+\end{abstract}
+
+\begin{keywords}
+matrix inversion, backward error analysis, floating-point arithmetic,
+pivoting, biorthogonalization, numerical stability
+\end{keywords}
+
+\begin{MSCcodes}
+65F05, 65G50, 65F35, 65F25
+\end{MSCcodes}
+
+\section{Introduction}
+\label{sec:intro}
+
+Let $A \in \R^{n\times n}$ be nonsingular. The pivoting transformation introduced by
+Castillo, Cobo, Jubete, Pruneda, and Castillo \cite{CastilloCJPC2000,CastilloCJP1999}
+constructs a sequence of tableaux $V^1,\dots,V^{n+1}$ by the elementary rule
+%
+\begin{equation}\label{eq:castillo-pivot}
+v^{j+1}_k =
+\begin{cases}
+v^j_k / t^j_j, & k = j,\\[2pt]
+v^j_k - \dfrac{t^j_k}{t^j_j}\, v^j_j, & k \neq j,
+\end{cases}
+\qquad
+(t^j)^T = a_j^T V^j ,
+\end{equation}
+%
+where $a_j^T$ denotes the $j$-th row of $A$. Starting from $V^1 = I$ and using the rows of $A$
+in order, the process terminates with $V^{n+1} = A^{-1}$. Its distinctive feature is the interpretation of the intermediate tableaux: each $V^j$ contains
+the generators of the subspace orthogonal to $\{a_1,\dots,a_{j-1}\}$ together with those of its
+complement, so the inverses and determinants of all leading principal submatrices come without
+extra computation, and the inverse can be updated after a change of one row by a single further
+pivoting step.
+
+The algebraic theory of~\eqref{eq:castillo-pivot} was developed in~\cite{CastilloCJPC2000} from
+the point of view of orthogonal decompositions and applied there to matrix inversion, determinant
+evaluation, rank determination, linear dependence testing, subspace intersection, and the
+compatibility analysis of linear systems. The numerical behavior of the process was explicitly
+left open: in the words of the authors~\cite[p.~667]{CastilloCJPC2000}, its numerical properties
+with respect to stability and ill conditioning \emph{``will be the aim of another paper''}. To the
+best of our knowledge that paper never appeared. Six years later the same group returned to the
+question only qualitatively, warning against the assumption that orthogonalization procedures are
+safe and recommending standard pivoting and preconditioning
+techniques~\cite[\S2.1]{CastilloPSM2006,HerreroCP2002}. No backward error bound was derived in any
+of these works, and the present paper supplies part of the missing analysis. Before stating what
+we do, we place~\eqref{eq:castillo-pivot} in a literature which is unusually scattered, and in
+which the same algorithm has been discovered independently at least a dozen times.
+
+\subsection{Genealogy and the stability question}
+\label{sec:genealogy}
+
+Algebraically,~\eqref{eq:castillo-pivot} is Purcell's \emph{vector method}~\cite{Purcell1953},
+identified by Egerv\'ary as a case of rank reduction~\cite{Egervary1957,Egervary1960},
+developed independently by Hestenes~\cite{Hestenes1958} as inversion by
+biorthogonalization, incorporated into the ABS class~\cite{AbaffyBS1984,AbaffySpedicato1989},
+and rediscovered in the sparse-solver literature as a direct projection method
+\cite{BenziMeyer1995,BenziTuma1998}.  SM1 records the extended genealogy.  Two historical
+observations are central here.  First, Hestenes noted that the choice $V^{(0)}=I$ is
+numerically fragile because the pivots are tied to the leading principal minors of $A$;
+\S\ref{sec:tableaux} makes this precise by identifying the intermediate tableaux with
+bordered inverses of the leading principal blocks.  Second, the ABS literature developed
+sensitivity and forward-error analyses~\cite{Broyden1985,Galantai1991,AsadbeigiPBJ2017}
+but did not obtain a backward-error bound for the explicitly formed inverse.
+
+The closest backward analysis is Fletcher's~\cite{Fletcher1997} treatment of the LIU
+factorization under partial pivoting.  It controls a perturbation of the factorization but
+never forms the inverse, and Fletcher explicitly notes the difficulty of transferring the
+partial-sum errors to the data in a Wilkinson-style solution analysis.  In the opposite
+regime, G\'ati~\cite{Gati2012,Gati2013}, extending the automatic roundoff analysis of
+Miller and Spooner~\cite{MillerSpooner1978a}, found large normwise errors for the
+unpivoted implicit-LU method at condition number $12.3$.  The apparent conflict is
+therefore a pivoting issue: Fletcher assumes partial pivoting, whereas G\'ati's examples
+use none.  The Castillo implementation~\cite[Algorithm~1, Step~3]{CastilloPSM2006}
+selects a pivot column but, in its original form, processes rows in order and hence lies
+between these regimes.
+
+\subsection{Contribution and outline}
+\label{sec:contribution}
+
+The missing object in the literature is the backward error of the \emph{explicitly formed inverse}.
+Writing $\widetilde V_{N+1}$ for the exact product of the computed elementary transformations and
+$E_{N+1}=\widehat V_{N+1}-\widetilde V_{N+1}$, we prove
+\begin{equation}\label{eq:intro-decomposition}
+R_N=I-A\widehat V_{N+1}=D_N-AE_{N+1},
+\qquad
+D_N=I-A\widetilde V_{N+1},
+\end{equation}
+and, for nonsingular $\widehat V_{N+1}$,
+$\Delta A=R_N\widehat V_{N+1}^{-1}$.  The first contribution is therefore to identify and analyze
+$D_N$, which is absent from a Wilkinson-style accumulation estimate.  Theorem~\ref{thm:defect-structure}
+telescopes it from local formation defects, and Proposition~\ref{prop:local-defect} exposes the
+scaled pivot and dot-product sensitivity as its natural local variables.
+
+The second contribution is a growth factor $\Gamma_N$ satisfying
+$r_R^\infty\le\gamma_{n+3}\Gamma_N$ and the universal floor
+$\Gamma_N\ge N/(1+N\gamma_2)$.  The third is an exact matrix-class result: for strictly row-
+diagonally dominant $A$ with gap $\alpha$ and $\|A\|_\infty=1$,
+Theorem~\ref{thm:dd} gives $\Gamma_N\le6n/\alpha^3$ and shows that first-nonzero and
+maximum-modulus follow the same pivot path; Corollary~\ref{cor:dd-fp} gives the corresponding
+first-order floating-point residual bound.  The fourth is an orthogonal adversarial family with
+$\kappa_2(A)=1$ on which first-nonzero has growth asymptotic to $\sqrt2/\varepsilon$, while
+magnitude-based rules have growth $(1-\varepsilon)^{-1/2}$.
+
+The campaigns show that the rigorous bound is valid but highly non-sharp on the screened records,
+that $D_N$ is the tightest ex-post diagnostic measured, and that the minimum scaled pivot is the
+dominant local trajectory indicator.  They also show that row pivoting is class dependent: useful
+on unstructured prescribed-singular-value matrices but harmful on the diagonal-dominance ensembles.
+SM1--SM11 contain the extended genealogy, proof details, campaign provenance, reliability
+accounting, regression, per-family results, replay analyses, adversarial tables, and high-precision
+validation.
+
+
+\section{Floating-point analysis}
+\label{sec:fp}
+
+Throughout, $\fl(\cdot)$ denotes evaluation in binary floating-point arithmetic with unit
+roundoff $u$, and
+%
+\begin{equation}\label{eq:gamma}
+\gamma_k = \frac{ku}{1-ku}, \qquad ku<1,
+\end{equation}
+%
+is the standard constant of~\cite[Ch.~3]{Higham2002}. Absolute values and inequalities
+between matrices are understood entrywise. When a matrix norm is left unspecified, it is
+submultiplicative, satisfies $\|X\|\le\bigl\|\,|X|\,\bigr\|$, and is monotone on nonnegative matrices:
+$0\le C\le D$ implies $\|C\|\le\|D\|$.  These properties are sufficient to pass from the
+componentwise bounds below to norm bounds and are satisfied by the spectral, Frobenius, and
+infinity norms used in the paper. We write
+$\widehat X$ for a computed quantity
+and $\widetilde X$ for the result of applying computed data in exact arithmetic. Unless stated
+otherwise, $A$ denotes the matrix as supplied to the working arithmetic after any initial data
+conversion; an additional perturbation caused by rounding an external real-valued data set into
+the working format is not included in the model below. All floating-point inequalities below assume
+that no underflow or overflow occurs and that every $\gamma_k$ appearing in the statement is
+defined, i.e., $ku<1$; individual results state only additional restrictions when needed.
+
+The analysis separates three sources of error, which the evidence of \S\ref{sec:experiments}
+shows behave very differently: the rounding committed when each elementary transformation is
+\emph{formed} from inner products, reciprocals, and quotients, which produces the
+\emph{transformation defect} $D_N$ of \S\ref{sec:defect}; the rounding committed when each
+transformation is \emph{applied} to the current tableau, which accumulates into $E_{N+1}$ and
+is the object of the classical Wilkinson-style estimate of \S\ref{sec:accumulation}; and the
+amplification of both by $\widehat V_{N+1}^{-1}$ when the residual is converted into a backward
+perturbation of $A$.
+
+\subsection{Rounded inner products}
+\label{sec:inner}
+
+The standard estimate~\cite[Lem.~3.1, Eq.~(3.4)]{Higham2002} states that for $x,y\in\R^n$
+%
+\begin{equation}\label{eq:inner}
+\fl(x^Ty) = (x+\delta x)^Ty, \qquad |\delta x| \le \gamma_n |x|,
+\end{equation}
+%
+and in particular $|\fl(x^Ty)-x^Ty| \le \gamma_n |x|^T|y|$. Applied to the pivot row
+of~\eqref{eq:castillo-pivot} this gives, for the computed dot products
+$\hat t^{\,j}_k = \fl(a_j^T\widehat v^{\,j}_k)$,
+%
+\begin{equation}\label{eq:dots}
+\bigl|\hat t^{\,j}_k - a_j^T\widehat v^{\,j}_k\bigr|
+\;\le\;
+\gamma_n\,|a_j|^T\bigl|\widehat v^{\,j}_k\bigr|,
+\qquad k=1,\dots,n .
+\end{equation}
+%
+The backward perturbation $\delta x$ in~\eqref{eq:inner} depends on $y$, so when the $n$ inner
+products $\hat t^{\,j}_k$ share the argument $a_j$ their individual backward interpretations
+need not provide a single common perturbation of $a_j$ satisfying the same componentwise bounds.
+Algebraically, if the current tableau is nonsingular, one can force a common row perturbation by
+multiplying the vector of dot-product errors by the inverse tableau, but this may amplify the
+perturbation by its conditioning and gives no Wilkinson-size backward bound. This is the
+obstruction relevant here and the reason the defect below is defined at the level of the computed
+coefficients rather than identified a priori with a small perturbation of the data. Two further
+roundings occur after the selected column has been exchanged into the active position: the
+reciprocal of the selected computed pivot and the quotients by that pivot, each contributing a
+relative error at most $u$. Their combination with~\eqref{eq:dots} produces the formation defect
+analyzed in \S\ref{sec:defect-structure}.
+
+\subsection{One computed pivoting transformation}
+\label{sec:onestep}
+
+Let $\widehat V_j$ be the computed tableau at the start of step $j$. To cover the row-pivoted
+variants of \S\ref{sec:experiments} we let $\pi_j$ denote the index of the row of $A$
+processed at step $j$ ($\pi_1,\dots,\pi_N$ distinct, $\pi_j=j$ when rows are taken in order),
+and to keep the notation of \S\ref{sec:inner} we write $a_j := a_{\pi_j}$ for the row
+processed at step $j$, reserving the subscript for the step. The computed dot products
+$\hat t^{\,j} = \fl\bigl(a_j^T\widehat V_j\bigr)$ are formed first; the pivot column
+$p_j\ (\ge j)$ is then selected among the admissible indices $j,\dots,n$ as a function of the
+\emph{computed} values $\hat t^{\,j}$ (and, for the scaled rules, of the computed column
+norms), so that every selection rule of \S\ref{sec:experiments}, and every diagnostic
+derived from the pivots, operates on rounded quantities; $P_j$ is the elementary permutation
+that exchanges columns $j$ and $p_j$. Set
+$\overline V_j=\widehat V_jP_j$, write $\overline v_k^{\,j}=\overline V_je_k$, and let
+$\overline t^{\,jT}=\hat t^{\,jT}P_j$ denote the computed dot products in the same permuted
+column order. Thus $\overline t_j^{\,j}=\hat t_{p_j}^{\,j}$ is the selected computed pivot. The
+coefficients actually used by the step are
+$\hat\beta=\fl(1/\overline t_j^{\,j})$ and
+$\hat\alpha_k=\fl(\overline t_k^{\,j}/\overline t_j^{\,j})$ for $k\ne j$. Write
+%
+\begin{equation}\label{eq:Bhat}
+\widehat B_j = I + e_j\bigl(\hat r^{\,T}-e_j^T\bigr),
+\qquad
+\hat r = \bigl(-\hat\alpha_1,\dots,-\hat\alpha_{j-1},\ \hat\beta,\
+-\hat\alpha_{j+1},\dots,-\hat\alpha_n\bigr)^T ,
+\end{equation}
+%
+so that $\widehat B_j$ is the identity with its $j$-th row replaced by $\hat r^T$. This is
+the computed analogue of $M_j^{-1}$ in~\cite[Eq.~(2.3)]{CastilloCJPC2000}.
+
+In exact arithmetic the step enforces $a_j^TV_{j+1}=e_j^T$, and the relations already achieved
+persist, since for $i<l$ the permutation $P_l$ fixes coordinate $i$ (since $p_l\ge l>i$) and row $i$
+of $B_l$ is $e_i^T$, so $a_i^TV_{l+1}=a_i^TV_lP_lB_l=e_i^TP_lB_l=e_i^T$. Hence after step $j$
+the invariant $a_i^TV_{j+1}=e_i^T$ holds for all $i\le j$, and at termination
+$\Pi A V_{N+1}=I$ with $\Pi=\sum_{j}e_je_{\pi_j}^T$, that is,
+$V_{N+1}=(\Pi A)^{-1}=A^{-1}\Pi^T$. To make the row-pivot convention unambiguous, set
+$\bar A=\Pi A$ and $\bar b=\Pi b$, and let $T$ denote any exact or computed terminal tableau for
+$\bar A$. The inverse of the original matrix represented by that tableau is $X=T\Pi$, and
+\[
+I-AX=\Pi^T(I-\bar A T)\Pi,
+\qquad
+(I-AX)X^{-1}=\Pi^T(I-\bar A T)T^{-1},
+\qquad
+Xb=T\bar b.
+\]
+Thus the spectral, infinity, and Frobenius residual norms and the corresponding normwise backward
+errors are identical whether they are evaluated for $(A,b,X)$ or for $(\bar A,\bar b,T)$; also
+$\kappa_2(\bar A)=\kappa_2(A)$. In theoretical formulas below we therefore suppress the bars and
+write $(A,b,V)$ for the row-permuted problem when row pivoting is used. Implementation-facing
+identities occasionally restore $\Pi$ explicitly, for example
+$D_N=I-\Pi A\widetilde V_{N+1}$ and $R_N=I-\Pi A\widehat V_{N+1}$.
+
+\begin{lemma}[One step]\label{lem:onestep}
+The computed tableau produced by one step of~\eqref{eq:castillo-pivot} satisfies
+%
+\begin{equation}\label{eq:onestep}
+\widehat V_{j+1} = \widehat V_j P_j \widehat B_j + F_j,
+\qquad
+|F_j| \le \gamma_2\,\bigl|\widehat V_jP_j\bigr|\,\bigl|\widehat B_j\bigr| .
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For $k\ne j$ the computed column
+$\fl(\overline v_k^{\,j}-\hat\alpha_k\overline v_j^{\,j})$ involves one multiplication and one
+subtraction, so its entries differ from the exact ones by at most
+$\gamma_2(|\overline v_{ik}^{\,j}|+|\hat\alpha_k||\overline v_{ij}^{\,j}|)$, while for $k=j$
+the computed column $\fl(\hat\beta\overline v_j^{\,j})$ has entrywise error at most
+$u|\hat\beta||\overline v_{ij}^{\,j}|$. Collecting and comparing with the entries of
+$|\widehat V_jP_j||\widehat B_j|=|\overline V_j||\widehat B_j|$ gives~\eqref{eq:onestep}.
+\end{proof}
+
+\begin{remark}\label{rem:no-backward-step}
+It is tempting to rewrite~\eqref{eq:onestep} as
+$\widehat V_{j+1} = (\widehat V_jP_j + F_j\widehat B_j^{-1})\widehat B_j$ and read it as a
+backward-stable step. We do not. For
+$\widehat B_j=I+e_j(\hat r^T-e_j^T)$, the nontrivial row of $\widehat B_j^{-1}$ has entries
+$\hat\beta^{-1}$ at the pivot and $\hat\alpha_k/\hat\beta$ off the pivot, quantities of the
+scale of the computed dot products rather than $|\overline t_j^{\,j}|^{-1}$. The forward error
+in~\eqref{eq:onestep}, however, is proportional to $|\widehat B_j|$; after the backward
+reinterpretation it is therefore controlled by a product of the form
+$\|\widehat B_j\|\,\|\widehat B_j^{-1}\|$, which can be large when the active pivot is small
+relative to the other dot products. This rewriting consequently does not by itself establish
+backward stability. The pivot dependence is made explicit instead in \S\ref{sec:conditional}.
+\end{remark}
+
+The permutation $P_j$ must be carried explicitly, since omitting it from the accumulated product of
+\S\ref{sec:accumulation} produces a quantity that is not the exactly applied tableau at all,
+and the resulting spurious defect, verified directly, is larger by up to fourteen orders
+of magnitude on well conditioned data.
+
+\subsection{Accumulation and amplification}
+\label{sec:accumulation}
+
+Write $\widehat{\mathcal{B}}_{i:k} = \prod_{j=i}^{k}P_j\widehat B_j$, with
+$\widehat{\mathcal{B}}_{k+1:k}=I$, and let $\widehat V_1$ be the starting tableau
+($\widehat V_1=I$ in~\cite{CastilloCJPC2000}).
+
+\begin{theorem}[Accumulation]\label{thm:accum}
+After $N=n$ steps,
+%
+\begin{equation}\label{eq:accum}
+\widehat V_{N+1}
+=
+\widetilde V_{N+1} + E_{N+1},
+\qquad
+\widetilde V_{N+1} = \widehat V_1\widehat{\mathcal{B}}_{1:N},
+\qquad
+E_{N+1} = \sum_{j=1}^{N} F_j\,\widehat{\mathcal{B}}_{j+1:N},
+\end{equation}
+%
+and consequently
+%
+\begin{equation}\label{eq:accum-bound}
+\bigl\|E_{N+1}\bigr\|
+\;\le\;
+\gamma_2 \sum_{j=1}^{N}
+\bigl\|\,\bigl|\widehat V_jP_j\bigr|\,\bigl|\widehat B_j\bigr|\,\bigr\|
+\;\bigl\|\widehat{\mathcal{B}}_{j+1:N}\bigr\| .
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Induction on $j$ using~\eqref{eq:onestep}, followed by the triangle inequality and
+submultiplicativity.
+\end{proof}
+
+Theorem~\ref{thm:accum} is the analogue, for the normalized inverse-forming variant, of the
+analysis Fletcher~\cite[Thm.~1]{Fletcher1997} gives for the LIU factorization, and we claim no
+priority for it; his estimate is stated for the triangular factors and involves the growth of
+the $\mathbb{L}^{(p)}$, whereas~\eqref{eq:accum-bound} concerns the explicitly formed tableau.
+What we add is the observation of \S\ref{sec:defect} that~\eqref{eq:accum} does not by itself
+bound the backward error of the inverse, and the finding of \S\ref{sec:law} that it is far from
+sharp.
+
+\subsection{Backward error of the computed inverse}
+\label{sec:defect}
+
+Define the residual and the \emph{transformation defect}
+%
+\begin{equation}\label{eq:defect}
+R_N = I - A\widehat V_{N+1},
+\qquad
+D_N = I - A\widetilde V_{N+1} .
+\end{equation}
+%
+The defect measures the extent to which the computed elementary transformations, applied
+\emph{exactly}, fail to invert $A$. It need not be zero: the coefficients $\hat\alpha_k$ and
+$\hat\beta$ are formed from rounded inner products and rounded divisions, so in general
+$\widetilde V_{N+1}$ is the exact product of factors that differ from their exact-arithmetic
+counterparts.
+
+\begin{theorem}[Backward error of the inverse]\label{thm:backward}
+Let $\widehat V_{N+1}$ be nonsingular. Then
+%
+\begin{equation}\label{eq:decomposition}
+R_N = D_N - A\,E_{N+1},
+\end{equation}
+%
+and the unique matrix $\Delta A$ with $(A+\Delta A)\widehat V_{N+1}=I$ is
+%
+\begin{equation}\label{eq:deltaA}
+\Delta A = R_N\,\widehat V_{N+1}^{-1},
+\end{equation}
+%
+so that the normwise inverse backward error satisfies
+%
+\begin{equation}\label{eq:etainv-bound}
+\eta_{\mathrm{inv}} := \frac{\|\Delta A\|}{\|A\|}
+\;\le\;
+\left(\frac{\|D_N\|}{\|A\|} + \|E_{N+1}\|\right)\bigl\|\widehat V_{N+1}^{-1}\bigr\| .
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Substituting $\widehat V_{N+1}=\widetilde V_{N+1}+E_{N+1}$ into the definition of $R_N$
+gives $R_N = I-A\widetilde V_{N+1}-AE_{N+1} = D_N - AE_{N+1}$, which
+is~\eqref{eq:decomposition}. Any $\Delta A$ with $(A+\Delta A)\widehat V_{N+1}=I$ satisfies
+$\Delta A\widehat V_{N+1}=R_N$, and nonsingularity of $\widehat V_{N+1}$ gives uniqueness
+and~\eqref{eq:deltaA}. The bound follows by the triangle inequality applied
+to~\eqref{eq:decomposition} together with~\eqref{eq:accum-bound}.
+\end{proof}
+
+Two features deserve comment. First, \eqref{eq:decomposition} is an exact identity, not an
+estimate, and it is the structural content of the theorem: the residual contains two distinct
+algebraic contributions. They are not statistically or dynamically independent---indeed
+Theorem~\ref{thm:defect-structure} contains an explicit coupling through the previously accumulated
+application error---but a bound on $E_{N+1}$ alone is nevertheless \emph{not} a bound on
+$\eta_{\mathrm{inv}}$. Setting $D_N=0$ is legitimate only under the additional hypothesis that
+the computed transformations invert $A$ exactly when applied exactly, which~\eqref{eq:dots}
+shows to be false in general. Second, the two contributions are not comparably informative in the
+campaign: the defect contribution tracks $\eta_{\mathrm{inv}}$ to within half an order of magnitude
+in the median, whereas the full right-hand side of~\eqref{eq:etainv-bound} exceeds it by a median
+factor of $2.3\times10^{5}$ (\S\ref{sec:law}).
+
+\subsection{Structure of the transformation defect}
+\label{sec:defect-structure}
+
+The defect was defined in \S\ref{sec:defect} by what it measures; we now show how it is
+generated. An exact telescoped representation assembles $D_N$, row by row, from a local
+\emph{formation defect} created at the step in which each row is biorthogonalized, whose
+componentwise bound exhibits the scaled pivot and the normalized absolute sensitivity of the dot
+products.
+
+\begin{proposition}[Local formation defect]\label{prop:local-defect}
+Assume $(n+1)u<1$ and the standard floating-point model without underflow or overflow. At a
+successful step $j$ with nonzero computed pivot, let
+$\overline V_j=\widehat V_jP_j$, $\overline v_k^{\,j}=\overline V_je_k$, and
+$s^T=a_j^T\overline V_j$ be the exact dot products with the computed tableau in permuted column
+order. Define the formation defect $\varphi_j^T=s^T\widehat B_j-e_j^T$. Then
+%
+\begin{equation}\label{eq:phi-components}
+\varphi_{j,j}=s_j\hat\beta-1,
+\qquad
+\varphi_{j,k}=s_k-s_j\hat\alpha_k \quad (k\ne j),
+\end{equation}
+%
+and
+%
+\begin{equation}\label{eq:phi-pair}
+|\varphi_{j,j}|
+\le u+\gamma_n|a_j|^T|\overline v_j^{\,j}|\,|\hat\beta|,
+\qquad
+|\varphi_{j,k}|
+\le \gamma_{n+1}|a_j|^T|\overline v_k^{\,j}|
++\gamma_n|a_j|^T|\overline v_j^{\,j}|\,|\hat\alpha_k|.
+\end{equation}
+%
+These inequalities imply the compact componentwise bound
+%
+\begin{equation}\label{eq:phi-compact}
+|\varphi_j^T|
+\le
+\gamma_{n+1}|a_j|^T|\widehat V_jP_j|\,|\widehat B_j|.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Write $\overline t_k^{\,j}=s_k+\delta_k$, where
+$|\delta_k|\le\gamma_n|a_j|^T|\overline v_k^{\,j}|$, and write the rounded quotient and reciprocal
+as
+$\hat\alpha_k=(\overline t_k^{\,j}/\overline t_j^{\,j})(1+\theta_k)$ and
+$\hat\beta=(1+\theta_0)/\overline t_j^{\,j}$, with
+$|\theta_k|,|\theta_0|\le u$.  Substitution gives the component identities and the two estimates
+in~\eqref{eq:phi-pair}.  For the pivot component put
+$q_j=|a_j|^T|\overline v_j^{\,j}|$.  Since
+$|\overline t_j^{\,j}|\le(1+\gamma_n)q_j$ and
+$|\hat\beta|\ge(1-u)/|\overline t_j^{\,j}|$,
+$q_j|\hat\beta|\ge(1-u)(1-nu)$.  Hence
+\[
+\gamma_{n+1}-\gamma_n-
+\frac{u}{(1-u)(1-nu)}
+=
+\frac{nu^2}{(1-u)(1-nu)(1-(n+1)u)}\ge0,
+\]
+which absorbs the isolated reciprocal-rounding term into $\gamma_{n+1}$.  The off-pivot
+components then follow directly from the columns of $|\widehat B_j|$.  SM2 gives the componentwise
+calculation in full.
+\end{proof}
+
+\begin{theorem}[Telescoped defect]\label{thm:defect-structure}
+With $G_j = e_j\varphi_j^T$ and
+$E_j = \widehat V_j - \widehat V_1\widehat{\mathcal B}_{1:j-1}$ the application error
+accumulated before step $j$ (so $E_1 = 0$),
+%
+\begin{equation}\label{eq:defect-telescope}
+D_N
+\;=\;
+-\sum_{j=1}^{N} G_j\,\widehat{\mathcal{B}}_{j+1:N}
+\;+\;
+\sum_{j=1}^{N} e_j\,a_j^T E_j\,\widehat{\mathcal{B}}_{j:N} .
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Write $W_j = \widehat V_1\widehat{\mathcal B}_{1:j-1}$ and, for $i\le j$, let
+$g_i^{(j)T} = a_i^TW_{j+1} - e_i^T$. For $l>i$ the permutation $P_l$ fixes coordinate $i$, since
+$p_l\ge l>i$, and $e_i^T\widehat B_l = e_i^T$, so $g_i^{(l)T} = g_i^{(l-1)T}P_l\widehat B_l$: the
+defect of a processed row propagates multiplicatively and no new term is created. Hence
+$g_i^{(N)T} = g_i^{(i)T}\widehat{\mathcal B}_{i+1:N}$, while at step $i$ itself
+$g_i^{(i)T} = \varphi_i^T - a_i^TE_iP_i\widehat B_i$ by $W_i=\widehat V_i-E_i$. Row $i$ of
+$D_N=I-\Pi A\widetilde V_{N+1}$ is $-g_i^{(N)T}$, and summing over $i$
+gives~\eqref{eq:defect-telescope}.
+\end{proof}
+
+The representation~\eqref{eq:defect-telescope} converts the defect from a defined quantity
+into an analyzed one. The first sum is created by \emph{forming} the transformations from rounded
+dot products; the second couples those formation rows to the application errors already
+accumulated, vanishes when the transformations are applied exactly, and is controlled by the same
+growth quantities as~\eqref{eq:accum-bound} (SM2).
+
+To interpret the local bound, for a nonzero column vector $v$ define the normalized absolute
+dot-product sensitivity
+%
+\begin{equation}\label{eq:chi}
+\chi(a_j,v)
+=
+\frac{|a_j|^T|v|}{\|a_j\|_2\,\|v\|_2}
+\in[0,1].
+\end{equation}
+%
+This is not the relative condition number of the dot product. For a nonzero exact product
+$a_j^Tv$ the latter is $|a_j|^T|v|/|a_j^Tv|$ and can be arbitrarily large. After normalization,
+the pivot component of~\eqref{eq:phi-pair} is governed by a factor of the form
+$\gamma_n\chi(a_j,\overline v_j^{\,j})/\hat p_j^{\rm sc}$, while the off-pivot components carry
+analogous factors weighted by $|\hat\alpha_k|$. Thus a small scaled pivot magnifies the formation
+defect through $|\hat\beta|$ and the multipliers. Dot-product cancellation supplies an additional mechanism not
+captured by the pivot alone; this is precisely where the empirical pivot diagnostic is weakest on
+the Vandermonde family in \S\ref{sec:predictors}. The propagated trailing products remain the
+non-sharp part of the resulting global estimate, just as in \S\ref{sec:accumulation}.
+
+\subsection{A growth factor for the transformation}
+\label{sec:growth}
+
+The bound~\eqref{eq:accum-bound} and the componentwise estimate of
+Proposition~\ref{prop:local-defect} control the residual through the same combination of computed
+quantities, which it is convenient to isolate. Throughout this subsection norms are the
+$\infty$-norm, for which $\||X|\|_\infty=\|X\|_\infty$ so that the componentwise absolute values
+in~\eqref{eq:accum-bound} cost nothing; we write
+%
+\begin{equation}\label{eq:rinv-inf}
+r_R^{\infty} = \frac{\bigl\|I-\Pi A\widehat V_{N+1}\bigr\|_\infty}
+                    {\|A\|_\infty\,\|\widehat V_{N+1}\|_\infty}
+\end{equation}
+%
+for the $\infty$-norm counterpart of the scaled right residual~\eqref{eq:rinv}. Standard
+norm equivalence gives
+$ n^{-3/2}r_R\le r_R^{\infty}\le n^{3/2}r_R$; no sharper equivalence is assumed below.
+
+\begin{definition}\label{def:growth}
+The \emph{growth factor} of the pivoting transformation is
+%
+\begin{equation}\label{eq:growth}
+\Gamma_N
+=
+\frac{1}{\|\widehat V_{N+1}\|_\infty}
+\sum_{l=1}^{N}
+\bigl\|\,\bigl|\widehat V_lP_l\bigr|\,\bigl|\widehat B_l\bigr|\,\bigr\|_\infty
+\;\bigl\|\widehat{\mathcal{B}}_{l+1:N}\bigr\|_\infty .
+\end{equation}
+\end{definition}
+
+When an exact-arithmetic trajectory is discussed below, the same symbol $\Gamma_N$ denotes the
+corresponding expression with the hats omitted. This convention keeps the algebraic structure
+visible while distinguishing exact-arithmetic bounds from the computed residual estimate.
+
+\begin{proposition}[Residual bound]\label{prop:growth-bound}
+$r_R^{\infty} \le \gamma_{n+3}\,\Gamma_N$.
+\end{proposition}
+
+\begin{proof}
+Theorem~\ref{thm:defect-structure} and the row-wise argument of its proof give
+$R_N = -\sum_{i} e_i\varphi_i^T\widehat{\mathcal{B}}_{i+1:N}
+- \sum_{l} \Pi_l A F_l\widehat{\mathcal{B}}_{l+1:N}$ with $\Pi_l=\sum_{i\le l}e_ie_{\pi_i}^T$.
+For a row vector, $\|v^TM\|_1\le\|v\|_1\|M\|_\infty$; hence by
+Proposition~\ref{prop:local-defect} and $\|a_i\|_1\le\|A\|_\infty$ the $i$-th row of the first
+sum has $1$-norm at most $\gamma_{n+1}\|A\|_\infty\||\widehat V_iP_i||\widehat B_i|\|_\infty
+\|\widehat{\mathcal{B}}_{i+1:N}\|_\infty$, and the $\infty$-norm of the sum is bounded by the
+sum of these. The second sum is bounded termwise using $\|\Pi_l\|_\infty\le1$ and
+$|F_l|\le\gamma_2|\widehat V_lP_l||\widehat B_l|$ from Lemma~\ref{lem:onestep}. Adding, with
+$\gamma_{n+1}+\gamma_2\le\gamma_{n+3}$, gives the claim.
+\end{proof}
+
+\begin{proposition}[A linear floor for the growth factor]\label{prop:growth-floor}
+The computed growth factor satisfies
+%
+\begin{equation}\label{eq:growth-floor}
+\Gamma_N \ge \frac{N}{1+N\gamma_2}.
+\end{equation}
+%
+For fixed $N$ this is $\Gamma_N\ge N-2N^2u+O(u^2)$ as $u\to0$.
+\end{proposition}
+
+\begin{proof}
+Fix $l$. Submultiplicativity and the entrywise inequality $|X||Y|\ge|XY|$ give
+$\||\widehat V_lP_l||\widehat B_l|\|_\infty\|\widehat{\mathcal{B}}_{l+1:N}\|_\infty
+\ge\|\widehat V_lP_l\widehat B_l\widehat{\mathcal{B}}_{l+1:N}\|_\infty$. Iterating
+\eqref{eq:onestep} from step $l$ onwards gives the exact identity
+%
+\[
+\widehat V_lP_l\widehat B_l\widehat{\mathcal B}_{l+1:N}
+=
+\widehat V_{N+1}-\sum_{m=l}^{N}F_m\widehat{\mathcal B}_{m+1:N}.
+\]
+%
+The sum on the right has infinity norm at most
+$\gamma_2\|\widehat V_{N+1}\|_\infty\Gamma_N$ by~\eqref{eq:accum-bound} and
+\eqref{eq:growth}. After division by $\|\widehat V_{N+1}\|_\infty$, each of the $N$ summands
+of~\eqref{eq:growth} is therefore at least $1-\gamma_2\Gamma_N$. Hence
+$\Gamma_N\ge N(1-\gamma_2\Gamma_N)$, which is equivalent to~\eqref{eq:growth-floor}.
+\end{proof}
+
+\begin{corollary}\label{cor:floor}
+The right-hand side of Proposition~\textup{\ref{prop:growth-bound}} itself has the finite-$u$
+floor
+%
+\[
+\gamma_{n+3}\Gamma_N
+\ge
+\gamma_{n+3}\frac{n}{1+n\gamma_2}.
+\]
+%
+Consequently an estimate of this form cannot certify a scaled residual below
+$n(n+3)u+O(u^2)$ at first order, for fixed $n$, whatever the matrix or pivot sequence.
+\end{corollary}
+
+Corollary~\ref{cor:floor} isolates a part of the pessimism of the estimate that is structural
+rather than attributable to additional tableau growth: bounding separately two factors whose
+product telescopes exactly incurs a contribution of order $N$ once per step even when the
+transformation is otherwise well behaved, and the measured residuals of \S\ref{sec:experiments}
+lie far below this first-order floor.
+
+\subsection{The intermediate tableaux}
+\label{sec:tableaux}
+
+The growth factor is governed by the tableaux, which for the unpivoted process have a closed
+form. For $1\le j\le n$ write $A_j=A(1{:}j,1{:}j)$ for the leading principal submatrix and
+$A_j'=A(1{:}j,j{+}1{:}n)$ for the remaining block of the same rows.
+
+\begin{lemma}[Explicit tableaux]\label{lem:tableaux}
+Apply~\eqref{eq:castillo-pivot} in exact arithmetic with $V^1=I$, the rows of $A$ in natural
+order, and no column interchanges, and suppose $A_1,\dots,A_j$ are nonsingular. Then
+%
+\begin{equation}\label{eq:tableau-explicit}
+V^{j+1}
+=
+\begin{bmatrix} A_j^{-1} & -A_j^{-1}A_j' \\[2pt] 0 & I_{n-j}\end{bmatrix},
+\qquad
+\bigl(V^{j+1}\bigr)^{-1}
+=
+\begin{bmatrix} A_j & A_j' \\[2pt] 0 & I_{n-j}\end{bmatrix}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Rows $m>j$ remain the corresponding rows of the identity.  The invariant
+$[A_j\ A_j']V^{j+1}=[I_j\ 0]$ then gives $A_jX=I_j$ and $A_jY+A_j'=0$, yielding
+\eqref{eq:tableau-explicit}; direct multiplication gives the inverse.
+\end{proof}
+
+Lemma~\ref{lem:tableaux} makes precise the warning of Hestenes recalled in
+\S\ref{sec:genealogy}: started from $V^{(0)}=I$ the tableaux are the inverses of the leading
+principal submatrices of $A$ itself, bordered by the corresponding off-diagonal block, so the
+process inherits whatever ill-conditioning those submatrices possess. Since
+$\|(V^{j+1})^{-1}\|_\infty\le\max\{1,\|A\|_\infty\}$ uniformly in $j$, the trailing products
+in~\eqref{eq:growth} are controlled by the data and all the growth resides in the tableaux.
+
+\subsection{Matrices with diagonal dominance}
+\label{sec:dd}
+
+For the classes in which the growth factor of Gaussian elimination is bounded by classical
+theorems, Lemma~\ref{lem:tableaux} transfers those bounds to $\Gamma_N$. We carry out the
+argument for strict diagonal dominance, where the constants can be made explicit.
+
+Let $A$ be strictly diagonally dominant by rows,
+%
+\begin{equation}\label{eq:dd-gap}
+\alpha := \min_{1\le i\le n}\Bigl(|a_{ii}|-\sigma_i\Bigr) > 0,
+\qquad
+\sigma_i := \sum_{k\ne i}|a_{ik}| ,
+\end{equation}
+%
+and normalize $\|A\|_\infty=1$, so that $0<\alpha\le1$ and $\sigma_i\le1-\alpha$.
+
+\begin{theorem}[Growth for diagonally dominant matrices]\label{thm:dd}
+Let $A$ satisfy~\eqref{eq:dd-gap} with $\|A\|_\infty=1$, and apply
+\eqref{eq:castillo-pivot} in exact arithmetic with $V^1=I$ and the rows of $A$ in natural order.
+Then:
+\begin{enumerate}
+\item every leading principal submatrix $A_j$ satisfies~\eqref{eq:dd-gap} with the same $\alpha$,
+and $\|A_j^{-1}\|_\infty\le1/\alpha$;
+\item every Schur complement is strictly row-diagonally dominant with gap at least $\alpha$, and
+every pivot satisfies $|t_l^{\,l}|\ge\alpha$;
+\item for every active row and every $k>l$,
+$|t_l^{\,l}|-|t_k^{\,l}|\ge\alpha$; hence the first-nonzero and maximum-modulus column rules both
+select the diagonal entry at every step and follow the same path without column interchanges;
+\item $\|V^j\|_\infty\le2/\alpha$ and $\|(V^j)^{-1}\|_\infty\le1$ for every $j$, while
+$\|B_l\|_\infty\le3/\alpha^2$ for every $l$;
+\item the exact-arithmetic growth factor satisfies
+%
+\begin{equation}\label{eq:dd-growth}
+\Gamma_N\le\frac{6n}{\alpha^3}.
+\end{equation}
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof sketch; details in SM2]
+Every $A_j$ inherits the gap $\alpha$, and the standard maximum-component argument gives
+$\|A_j^{-1}\|_\infty\le1/\alpha$.  One elimination step preserves that gap because
+\[
+|a'_{ii}|-\sum_{k\ge2,\,k\ne i}|a'_{ik}|
+\ge (|a_{ii}|-\sigma_i)
++|a_{i1}|\left(1-\frac{\sigma_1}{|a_{11}|}\right)\ge\alpha.
+\]
+By Lemma~\ref{lem:tableaux}, the tail $(t_l^{\,l},\ldots,t_n^{\,l})$ is the active Schur row,
+so the diagonal pivot exceeds every competitor in modulus by at least $\alpha$.  The same lemma
+gives $\|V^j\|_\infty\le2/\alpha$ and $\|(V^j)^{-1}\|_\infty\le1$; consequently
+$\|B_l\|_\infty\le3/\alpha^2$.  Finally
+$\mathcal B_{l+1:N}=(V^{l+1})^{-1}V^{N+1}$, so the terminal tableau norm cancels in
+\eqref{eq:growth}, giving $\Gamma_N\le6n/\alpha^3$.
+\end{proof}
+
+\begin{corollary}[First-order residual bound on the diagonal-dominance path]\label{cor:dd-fp}
+Fix $A$ and $n$ as in Theorem~\ref{thm:dd}. In the standard floating-point model, excluding
+underflow and overflow, for all sufficiently small $u$ the computed first-nonzero and
+maximum-modulus variants follow the exact pivot path. Along that path,
+%
+\begin{equation}\label{eq:dd-residual}
+r_R^{\infty}
+\le
+\frac{6n(n+3)}{\alpha^3}\,u+O(u^2),
+\qquad u\to0,
+\end{equation}
+%
+where the constant hidden in $O(u^2)$ may depend on the fixed matrix and on $n$.
+\end{corollary}
+
+\begin{proof}
+The proof of Theorem~\ref{thm:dd} gives more than strict comparison: in every exact active Schur
+complement,
+$|t_l^{\,l}|\ge\alpha$ and
+$|t_l^{\,l}|-|t_k^{\,l}|\ge\alpha$ for each $k>l$, because the full row-dominance gap is at least
+$\alpha$. For fixed $A$ and $n$, a finite induction along the exact path gives
+$\widehat V_j=V^j+O(u)$ and computed dot products equal to their exact-path counterparts plus
+$O(u)$. Hence, once $u$ is sufficiently small, the active computed pivot remains nonzero and the
+ordering of the computed moduli cannot change; the first-nonzero rule also accepts the active
+entry. The same induction then gives $\widehat B_j=B_j+O(u)$ at every step. Consequently the
+computed growth factor is $\Gamma_N+O(u)$. Proposition~\ref{prop:growth-bound},
+$\gamma_{n+3}=(n+3)u+O(u^2)$, and~\eqref{eq:dd-growth} give~\eqref{eq:dd-residual}.
+\end{proof}
+
+\begin{remark}\label{rem:dd-caveats}
+The distinction between Theorem~\ref{thm:dd} and Corollary~\ref{cor:dd-fp} is deliberate: the
+former is an exact-arithmetic, matrix-class bound, whereas the latter is a first-order statement
+about the computed trajectory. The maximum-scaled column rule is not covered because its
+normalizing denominators $\|v_k\|_2$ are not entries of the Schur complement; indeed
+\S\ref{sec:dd-numerics} exhibits interchanges under that rule. Row pivoting is also outside the
+theorem because it replaces the leading block of Lemma~\ref{lem:tableaux} by
+$A(\pi(1{:}j),1{:}j)$. Finally, the exponent $3$ in~\eqref{eq:dd-growth} is not claimed sharp. It
+arises once from $\|V^j\|_\infty$, once from the reciprocal pivot, and once from bounding the full
+row $t$ by $\|V^j\|_\infty\|a_j\|_1$; the numerical evidence in \S\ref{sec:dd-numerics} shows that
+this last chain of separate estimates is highly pessimistic.
+\end{remark}
+
+\subsection{Backward error of an individual linear system}
+\label{sec:solution-theory}
+
+If the computed inverse is used to solve $Ax=b$ by forming
+$\widehat x=\fl(\widehat V_{N+1}b)$, the resulting residual depends on the action of $R_N$ on the
+particular right-hand side, not only on its norm.
+
+\begin{proposition}\label{prop:sol-vs-inv}
+Let $b\ne0$ and $\widehat x=\fl(\widehat V_{N+1}b)$. There exists $\Delta V$ with
+$|\Delta V|\le\gamma_n|\widehat V_{N+1}|$ such that
+$\widehat x=(\widehat V_{N+1}+\Delta V)b$, and
+%
+\begin{equation}\label{eq:sol-residual}
+b-A\widehat x=R_Nb-A\Delta Vb.
+\end{equation}
+%
+Consequently,
+%
+\begin{equation}\label{eq:sol-bound}
+\eta_{\mathrm{sol}}
+\le
+\frac{\|R_Nb\|_2}{\|b\|_2}
++
+\gamma_n\|A\|_2\,\bigl\|\,|\widehat V_{N+1}|\,\bigr\|_2,
+\end{equation}
+%
+and, using $R_N=\Delta A\widehat V_{N+1}$ from Theorem~\ref{thm:backward},
+%
+\begin{equation}\label{eq:sol-inv-bound}
+\eta_{\mathrm{sol}}
+\le
+\eta_{\mathrm{inv}}\,\|A\|_2\,\|\widehat V_{N+1}\|_2
++
+\gamma_n\|A\|_2\,\bigl\|\,|\widehat V_{N+1}|\,\bigr\|_2.
+\end{equation}
+\end{proposition}
+
+The proof is given in SM2. Equation~\eqref{eq:sol-residual} shows why a particular right-hand side
+can have small solution backward error even when the matrix inverse has a large backward error.
+Conversely,~\eqref{eq:sol-inv-bound} makes explicit the factor multiplying
+$\eta_{\mathrm{inv}}$ in a uniform-in-$b$ statement; when
+$\widehat V_{N+1}\approx A^{-1}$ this factor is of order $\kappa_2(A)$. This is also why
+comparisons based on $\eta_{\mathrm{sol}}$ require the underlying problem to be resolved in the
+working precision (\S\ref{sec:scaling}). Iterative refinement changes $\widehat x$ and therefore
+$\eta_{\mathrm{sol}}$, but it does not alter the stored inverse or $R_N$.
+
+\subsection{A conditional statement, and the role of the pivot}
+\label{sec:conditional}
+
+The elementary transformation~\eqref{eq:Bhat} has
+$\|\widehat B_j\|\ge|\hat\beta|$ and, because
+$\hat\beta=\fl(1/\overline t_j^{\,j})$,
+%
+\[
+|\hat\beta|\ge\frac{1-u}{|\overline t_j^{\,j}|}.
+\]
+%
+Thus the pivot enters the local amplification directly. We measure it by the scale-invariant
+quantity
+%
+\begin{equation}\label{eq:pmin}
+p^{\rm sc}_{\min}=\min_{1\le j\le N}\hat p_j^{\rm sc},
+\qquad
+\hat p_j^{\rm sc}
+=
+\frac{|\overline t_j^{\,j}|}
+     {\|a_j\|_2\,\|\overline v_j^{\,j}\|_2}.
+\end{equation}
+%
+Equivalently, $\overline v_j^{\,j}=\widehat v_{p_j}^{\,j}$ and
+$\overline t_j^{\,j}=\hat t_{p_j}^{\,j}$ in the pre-exchange indexing. Equation~\eqref{eq:dots}
+gives the normalized absolute perturbation bound
+%
+\[
+\left|
+\frac{\overline t_j^{\,j}-a_j^T\overline v_j^{\,j}}
+     {\|a_j\|_2\,\|\overline v_j^{\,j}\|_2}
+\right|
+\le\gamma_n\chi(a_j,\overline v_j^{\,j});
+\]
+%
+this is not a relative-error bound for the dot product when cancellation is severe.
+
+Theorem~\ref{thm:backward} immediately gives the following conditional statement. If along the
+computed sequence
+%
+\begin{equation}\label{eq:hypotheses}
+\frac{\|D_N\|}{\|A\|}\le c_Du,
+\qquad
+\|E_{N+1}\|\le c_Eu,
+\qquad
+\|\widehat V_{N+1}^{-1}\|\le c_V,
+\end{equation}
+%
+then
+$\eta_{\mathrm{inv}}\le(c_D+c_E)c_Vu$. The mathematical issue is therefore not this immediate
+implication but which hypotheses can be controlled for the algorithm.
+
+\begin{observation}[Local pivot diagnostic]\label{obs:pivot}
+Over the reliability-screened records of the mechanistic campaign, the empirical inequality
+%
+\begin{equation}\label{eq:defect-pivot}
+\frac{\|D_N\|_2}{\|A\|_2}
+\le
+\frac{un}{p^{\rm sc}_{\min}}
+\end{equation}
+%
+holds in $88.7\%$ of cases overall, in $99.7\%$ for \texttt{R1\_C1}, and in $99.96\%$ for
+\texttt{R2\_C2}; the analogous inequality for $\eta_{\mathrm{inv}}$ holds in $99.0\%$ of the
+screened cases. The defect itself is a tighter ex-post diagnostic of $\eta_{\mathrm{inv}}$ under
+the ratio-spread criterion of \S\ref{sec:predictors}; the significance of
+$p^{\rm sc}_{\min}$ is instead that it is a local trajectory quantity and is the strongest such
+indicator among those tested. The relation is incomplete, with Vandermonde matrices providing the
+principal failures. Independently, \S\ref{sec:adversarial} proves that $\kappa_2(A)$ alone cannot
+control the intermediate tableau growth: an orthogonal family with $\kappa_2(A)=1$ has
+$p^{\rm sc}_{\min}=\varepsilon$ and growth asymptotic to $\sqrt2/\varepsilon$ under the
+first-nonzero rule.
+\end{observation}
+
+Observation~\ref{obs:pivot} is empirical, not a theorem. It identifies the local mechanism that a
+sharper conditional analysis would have to propagate without the severe loss introduced by the
+growth products. The regression evidence in SM6 also shows that growth variables retain
+class-dependent information out of sample; the conclusion is therefore not that growth is
+irrelevant, but that the classical growth estimate is too pessimistic and that the scaled pivot is
+the dominant local diagnostic of defect formation.
+
+\section{Numerical campaign}
+\label{sec:experiments}
+
+Two campaigns are reported. The \emph{mechanistic} campaign tests the quantities appearing in
+\eqref{eq:hypotheses} and identifies which ones are informative for the observed backward error; it
+comprises $18\,744$ matrix/right-hand-side configurations over seven families and $552\,747$
+method/refinement records. The \emph{large-scale} campaign tests whether those conclusions survive
+dimension, structure and massive sampling, and measures quantities that the theory defines but
+does not sharply bound. It contains $14.7$ million complete matrices over fourteen families,
+thirteen dimensions $8\le n\le512$, and $1.47\times10^8$ inverse records. The $20\,000$-sample
+core is complete through $n=181$; dimensions $256$, $362$, and $512$ are analyzed through a
+balanced extension of $2000$ realizations per stochastic cell recovered after the wall-clock limit.
+Because the recovery follows the deterministic task/manifest ordering, no missing-at-random claim
+is made for that extension. Design, generation parameters, completeness accounting and provenance
+are in SM3 and SM7.
+
+\subsection{Design and instrumentation}
+\label{sec:design}
+
+Both campaigns are evaluated in binary32 and binary64, with $u_{32}=2^{-24}$ and
+$u_{64}=2^{-53}$, and with zero, one and two steps of iterative refinement. A single instrumented
+implementation records the elementary transformations, the permutations, the tableaux and the
+quantities of \S\ref{sec:growth}, so every diagnostic below derives from the same computed data
+as the inverse itself.
+
+Two pivoting decisions are available in~\eqref{eq:castillo-pivot} and they are logically
+independent: the \emph{column rule} selects the pivot column at step $j$, and the \emph{row
+rule} selects which of the remaining rows of $A$ is processed. The column search is necessarily
+restricted to columns not previously used as pivots, since a column $v_i$ with $a_i^Tv_i=1$
+cannot be reused without destroying the biorthogonality already
+established~\cite[Algorithm~1, Step~3]{CastilloPSM2006}. The row rule carries no such
+restriction and is the axis along which the published regimes differ: G\'ati~\cite{Gati2013}
+uses no pivoting of either kind, whereas Fletcher~\cite[\S2]{Fletcher1997} permutes rows to
+bring the largest $|\mathbf{l}_j^Ta_k|$ to the diagonal, exactly equivalent to partial pivoting
+in Gaussian elimination. We therefore consider the five combinations of
+Table~\ref{tab:variants}, the scaled score being
+$s_{jk} = |\hat t^{\,j}_k|/(\|a_j\|_2\|\widehat v_k^{\,j}\|_2)$, evaluated from the computed dot
+products consistently with~\eqref{eq:pmin}. The references are LU with partial pivoting,
+Householder QR, the SVD, and Gauss--Jordan inversion with partial and with complete pivoting.
+
+\begin{table}
+\centering
+\caption{Pivoting variants. \texttt{R0\_C0} is the rule of~\cite{CastilloCJPC2000};
+\texttt{R1\_C1} is the closest available analogue of the LIU factorization
+of~\cite{Fletcher1997} with partial pivoting.}
+\label{tab:variants}
+\begin{tabular}{lll}
+\hline
+Variant & Row rule & Column rule \\
+\hline
+\texttt{R0\_C0} & rows in order & first numerically nonzero pivot \\
+\texttt{R0\_C1} & rows in order & maximum absolute pivot \\
+\texttt{R0\_C2} & rows in order & maximum scaled pivot \\
+\texttt{R1\_C1} & maximum absolute & maximum absolute pivot \\
+\texttt{R2\_C2} & maximum scaled  & maximum scaled pivot \\
+\hline
+\end{tabular}
+\end{table}
+
+In Table~\ref{tab:variants}, ``first numerically nonzero'' means the first admissible computed
+pivot that is unequal to zero in the working format; no separate tolerance-based acceptance rule is
+part of this variant. The first-order path statement of Corollary~\ref{cor:dd-fp} refers to this
+rule; a tolerance-based modification would require its threshold to be specified as $u\to0$.
+
+\subsection{Measured quantities and their reliability}
+\label{sec:reliability}
+
+The exact normwise inverse backward error of Theorem~\ref{thm:backward} is
+%
+\begin{equation}\label{eq:etainv}
+\eta_{\mathrm{inv}}
+=
+\frac{\|(I-A\widehat V_{N+1})\widehat V_{N+1}^{-1}\|_2}{\|A\|_2}.
+\end{equation}
+%
+The campaign evaluates a floating-point estimator of this exact metric by solving with the
+computed tableau. When $\widehat V_{N+1}$ is itself unresolved in the working precision, that
+solve is the operation whose reliability is in question. We therefore use the same conservative conditioning screen for every
+variant. Let $W$ denote the separately maintained inverse of the accumulated product of the
+computed transformations, cast with $\widehat V_{N+1}$ to binary64 for the screen, and define
+%
+\begin{equation}\label{eq:reliability-delta}
+\delta_F
+=
+\bigl\|I-\fl_{64}(W\widehat V_{N+1})\bigr\|_F
++
+\gamma_n^{(64)}\,\|W\|_F\,\|\widehat V_{N+1}\|_F,
+\end{equation}
+%
+where $\gamma_n^{(64)}$ uses binary64 unit roundoff. The motivation is the standard product
+error bound: if the two displayed terms were evaluated exactly, then
+%
+\[
+\|I-W\widehat V_{N+1}\|_2
+\le
+\|I-W\widehat V_{N+1}\|_F
+\le\delta_F.
+\]
+%
+Thus $\delta_F<1$ implies
+$\widehat V_{N+1}^{-1}=(I-H)^{-1}W$ with
+$H=I-W\widehat V_{N+1}$ and hence
+%
+\[
+\|\widehat V_{N+1}^{-1}\|_2
+\le\frac{\|W\|_2}{1-\delta_F},
+\qquad
+\kappa_2(\widehat V_{N+1})
+\le
+\frac{\|\widehat V_{N+1}\|_F\,\|W\|_F}{1-\delta_F}.
+\]
+%
+This motivates the implemented screen
+%
+\begin{equation}\label{eq:reliability}
+\kappa^{\rm scr}
+=
+\frac{\|\widehat V_{N+1}\|_F\,\|W\|_F}{1-\delta_F}
+\end{equation}
+%
+and the requirement $u\kappa^{\rm scr}<10^{-2}$ before the estimator of
+$\eta_{\mathrm{inv}}$ is reported. We call these records \emph{reliability-screened}. The
+terminology is intentionally weaker than ``exactly certified'': the norms and scalar combinations
+in the screen are themselves evaluated in binary64 without directed rounding, so
+\eqref{eq:reliability-delta} is an operational conservative screen rather than a formal interval
+certificate or a direct high-precision evaluation of $\kappa_2(\widehat V_{N+1})$. The threshold
+was fixed before the campaign and applied identically to all variants.
+
+In the mechanistic campaign $52\,184$ of the $91\,466$ successful unrefined Castillo records
+($57.1\%$) pass the screen. In the large-scale campaign the corresponding rate is $48\%$ in
+binary32 and $81\%$ in binary64, with less than one percentage point of variation among pivot
+variants. Comparisons based on $\eta_{\mathrm{inv}}$ are therefore reported only on the screened
+subset with its size stated. The scaled right inverse residual
+%
+\begin{equation}\label{eq:rinv}
+r_R
+=
+\frac{\|I-A\widehat V_{N+1}\|_2}{\|A\|_2\,\|\widehat V_{N+1}\|_2}
+\end{equation}
+%
+requires no solve and is available for every successful record. SM4 gives the full reliability
+accounting and the exact implementation of the screen.
+
+The instrumentation was checked independently. A verifier reproduced the working-precision pivot
+path of the $91\,466$ mechanistic inverse records and evaluated both~\eqref{eq:decomposition} and
+the row-wise reconstruction of $D_N$ from Theorem~\ref{thm:defect-structure} in variable precision,
+with precision and tolerance scaled to the observed trailing-product growth. Both identities passed
+on all $91\,219$ records for which the pivot path was reproduced. Since the identities themselves
+are algebraic, this validates the instrumentation and the treatment of row and column permutations,
+not the theorems by experiment (SM11).
+
+\subsection{Comparison of pivoting rules}
+\label{sec:comparison}
+
+\begin{table}
+\centering
+\caption{Scaled right inverse residual~\eqref{eq:rinv} over all successful cases of the
+mechanistic campaign, and reliability-screened inverse backward error~\eqref{eq:etainv}. LU, QR and the SVD
+do not form an explicit inverse and are not comparable here.}
+\label{tab:comparison}
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lrrrrrr}
+\hline
+& \multicolumn{3}{c}{$r_R$, all successes} & \multicolumn{3}{c}{$\eta_{\mathrm{inv}}$, screened} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Method & median & $q_{99}$ & max & median & $q_{99}$ & max \\
+\hline
+\texttt{R0\_C0} & $2.69\times10^{-13}$ & $6.15\times10^{-4}$ & $6.49\times10^{-1}$
+                & $3.78\times10^{-8}$ & $4.74\times10^{-2}$ & $2.45\times10^{1}$ \\
+\texttt{R0\_C1} & $1.15\times10^{-15}$ & $1.76\times10^{-6}$ & $5.48\times10^{-6}$
+                & $5.17\times10^{-9}$ & $9.91\times10^{-4}$ & $2.40\times10^{-3}$ \\
+\texttt{R0\_C2} & $1.28\times10^{-15}$ & $2.32\times10^{-6}$ & $6.18\times10^{-6}$
+                & $5.09\times10^{-9}$ & $9.91\times10^{-4}$ & $2.45\times10^{-3}$ \\
+\texttt{R1\_C1} & $\mathbf{8.33\times10^{-16}}$ & $\mathbf{1.18\times10^{-6}}$ & $\mathbf{2.53\times10^{-6}}$
+                & $5.09\times10^{-9}$ & $7.91\times10^{-4}$ & $\mathbf{1.48\times10^{-3}}$ \\
+\texttt{R2\_C2} & $8.88\times10^{-16}$ & $1.49\times10^{-6}$ & $3.12\times10^{-6}$
+                & $\mathbf{5.01\times10^{-9}}$ & $\mathbf{7.53\times10^{-4}}$ & $1.57\times10^{-3}$ \\
+\hline
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:comparison} admits three conclusions. First, the four variants that select a pivot
+by magnitude are mutually comparable and separated from the first-nonzero rule by two orders of
+magnitude in the median residual and five in the maximum; the transformation defect shows the
+same separation, with median $\|D_N\|_2/\|A\|_2 = 2.17\times10^{-4}$ for \texttt{R0\_C0} against
+$1.18\times10^{-6}$ for \texttt{R1\_C1}. Second, the magnitude-based variants are comparable
+with Gauss--Jordan inversion on the displayed median residual: all four improve on the
+$1.90\times10^{-15}$ median of partial-pivoting Gauss--Jordan, while the row-pivoted variants are
+also close to the $9.79\times10^{-16}$ median of complete-pivoting Gauss--Jordan. No claim of
+dominance for unreported Gauss--Jordan percentiles is made. This is consistent with Fletcher's
+favorable conclusion~\cite{Fletcher1997} under partial pivoting and with G\'ati's instability
+finding~\cite{Gati2013} without pivoting, while emphasizing the role of the pivot strategy.
+Third, among the pivoted variants there is no total ordering, the differences being within a
+factor two on the statistics displayed in Table~\ref{tab:comparison}.
+
+The large-scale campaign sharpens the third conclusion. The separation of the first-nonzero rule
+persists over $14.7$ million matrices and up to $n=512$, where the median across cells of
+$q_{95}(r_R/u)$ is $9.9$ and $15.4$ for \texttt{R0\_C0} in the two precisions against $1.3$ to
+$2.5$ for the pivoted variants. But the ordering \emph{among} the pivoted variants is a property
+of the matrix class, not of the method. Row pivoting is beneficial on random matrices with prescribed singular values, \texttt{R1\_C1}
+winning the paired comparison against \texttt{R0\_C1} on $71\%$ of matrices; it is harmful on
+both diagonally dominant ensembles, where \texttt{R0\_C1} wins on $85$ to $89\%$; and on
+Vandermonde at $n=512$ the two magnitude rules without row pivoting are the viable choices:
+\texttt{R0\_C1} has zero breakdown and \texttt{R0\_C2} breaks down on only $0.1\%$ of cases,
+against $65.6\%$, $72.7\%$ and $84.6\%$ for \texttt{R0\_C0}, \texttt{R1\_C1} and
+\texttt{R2\_C2}; among the two no-row-pivot rules, \texttt{R0\_C2} has the smaller conditional
+$q_{95}(r_R/u)$ ($0.288$ versus $0.793$). That comparison also shows why breakdown rate and
+conditional residual must be reported together:
+among survivors \texttt{R2\_C2} attains $q_{95}(r_R/u)=0.296$, barely distinguishable from the
+$0.288$ of \texttt{R0\_C2}, yet fails on five sixths of the sample, and where both succeed
+\texttt{R0\_C2} is still the smaller on $59\%$ of matrices. The defensible statement is that
+\emph{selecting a pivot by magnitude matters, and which magnitude rule is selected does not,
+except through the structure of the matrix class} (SM7).
+
+\subsection{The bound is valid but not sharp}
+\label{sec:law}
+
+The bound of Theorem~\ref{thm:backward}, evaluated with the quantities recorded during the
+computation, is
+%
+\begin{equation}\label{eq:corrected-bound}
+\Lambda_N^{\rm corr}
+= \left(\frac{\|D_N\|_2}{\|A\|_2}
++ \gamma_2\sum_{j=1}^{N}\bigl\|\,|\widehat V_jP_j|\,|\widehat B_j|\,\bigr\|_2
+\bigl\|\widehat{\mathcal B}_{j+1:N}\bigr\|_2\right)
+\bigl\|\widehat V_{N+1}^{-1}\bigr\|_2 .
+\end{equation}
+%
+No violation is observed over the $52\,184$ reliability-screened comparisons; the maximum observed ratio
+$\eta_{\mathrm{inv}}/\Lambda_N^{\rm corr}$ being $0.266$, with $q_{50}=3.69\times10^{-6}$ and
+$q_{99}=4.94\times10^{-2}$. It is, however, far too pessimistic to describe the observed
+magnitude, its upper percentiles reaching $10^{52}$--$10^{61}$.
+
+The observed loss is overwhelmingly concentrated in one place and has a structural component. The amplification factor is not the difficulty,
+$\|\widehat V_{N+1}^{-1}\|_2$ having median $1.000$; nor is the defect, whose contribution
+accounts for a median fraction $<10^{-4}$ of $\Lambda_N^{\rm corr}$ while tracking
+$\eta_{\mathrm{inv}}$ closely. More than $99.99\%$ of the bound is the accumulation sum in the median, and
+Proposition~\ref{prop:growth-floor} shows a factor of order $n^2u$ in the resulting residual bound
+to be structural. The universal finite-$u$ statement is
+$\Gamma_N\ge n/(1+n\gamma_2)$; in addition, the campaign happens to satisfy the stronger empirical
+inequality $\Gamma_N\ge n$ on all $8320$ recorded cells, with minimum $\Gamma_N/n=1.64$.
+Accordingly the theoretical right-hand side has the first-order floor $n(n+3)u+O(u^2)$, whereas
+the measured $r_R/u$ has median $1.20$ over the $73\,073$ unrefined pivoted records of the
+large-scale campaign. Beyond that floor the pessimism is the familiar one of bounding separately
+two factors whose product telescopes. In exact arithmetic, with processed-row permutation $\Pi$,
+$V_1\prod_jP_jB_j=(\Pi A)^{-1}=A^{-1}\Pi^T$; for the exactly applied computed factors their
+departure from this relation is encoded exactly by $D_N=I-\Pi A\widetilde V_{N+1}$. The
+individual factors carry no analogous terminal constraint. On the prescribed-singular-value
+family, $\max_j\|\widehat V_j\|_2$ tracks $\|A^{-1}\|_2$ with median ratio $1.08$ and
+log-correlation $0.99$, and the trailing products behave similarly. Their separate-factor product
+can therefore inherit roughly squared conditioning on that family, without implying a universal
+scaling law for the actual inverse backward error.
+
+\subsection{The diagonally dominant class}
+\label{sec:dd-numerics}
+
+Theorem~\ref{thm:dd} is the one place where the analysis delivers an exact-trajectory growth
+bound without a separate a priori tableau-growth hypothesis, and the large-scale campaign was
+designed to test both its covered variants and the behavior of nearby variants outside its
+hypotheses. Two ensembles are used. B1 has random sign patterns. For B2 a zero-diagonal row-stochastic matrix $P$ with positive off-diagonal entries is generated and
+\[
+A=\frac{I-\beta P}{1+\beta},
+\qquad
+\beta=\frac{1-\alpha}{1+\alpha}.
+\]
+Thus every reference row has absolute sum one and dominance gap
+$(1-\beta)/(1+\beta)=\alpha$ algebraically. The campaign stores the measured reference gap as well
+as the nominal grid value $\alpha\in\{10^{-3},\dots,0.5\}$; subsequent conversion to the working
+precision makes the finite-precision checks numerical counterparts, not exact restatements, of the
+theorem.
+
+Across the large audit, the two theorem-covered variants \texttt{R0\_C0} and \texttt{R0\_C1}
+show no computed-pivot violation: the minimum recorded value of
+$\min_l|\hat t_l^{\,l}|/\alpha$ is $1.423967$, while the minimum over all five variants is
+$1.419758$.
+The worst recorded ratios to the nominal tableau, elementary-transformation, and exact-growth
+scales are approximately $0.54$, $0.17$, and $0.038$, respectively. After synchronizing the
+residual diagnostic with Proposition~\ref{prop:growth-bound}, the largest value of
+\[
+\frac{r_R^\infty}{\gamma_{n+3}\,6n/\alpha^3}
+\]
+is $1.000394\times10^{-3}$ for \texttt{R0\_C0}/\texttt{R0\_C1} and
+$1.177932\times10^{-3}$ over all five variants. These finite-$u$ ratios are diagnostic comparisons;
+they are not a numerical proof of the asymptotic $O(u^2)$ statement in Corollary~\ref{cor:dd-fp}.
+The checks on \texttt{R0\_C2}, \texttt{R1\_C1}, and \texttt{R2\_C2} are additional empirical DD
+checks outside the theorem's hypotheses, whereas those on \texttt{R0\_C0} and \texttt{R0\_C1}
+are numerical counterparts of the theorem-covered paths. The audit count is deliberately not
+converted into a number of independent matrix records, because several stepwise inequalities are
+evaluated on each matrix.
+
+The interchange counts delimit the exact result sharply. On B1, \texttt{R0\_C0},
+\texttt{R0\_C1}, and \texttt{R0\_C2} perform zero column interchanges on every one of the
+$2.6\times10^5$ balanced matrices per precision. The dedicated replay control documented in SM8
+compares \texttt{R0\_C0} with \texttt{R0\_C1}: over all $520$ blocks it finds identical pivot
+paths and bit-for-bit equality of $D_N$, $R_N$, and $\Pi AE_{N+1}$. No corresponding bit-for-bit
+replay claim is made for \texttt{R0\_C2}. On B2 the maximum-scaled rule departs, interchanging on
+$4.91\%$ of matrices, concentrated at small $n$ and small $\alpha$ and absent from $n\ge181$;
+this empirical counterexample is why the theorem is not extended to \texttt{R0\_C2}. By contrast,
+\texttt{R1\_C1} and \texttt{R2\_C2} permute almost every step, with median $504$ and $505$ row
+interchanges at $n=512$, and those variants degrade the residual on both ensembles.
+
+The bound is deliberately conservative in its $\alpha$ dependence. Fitting
+$\Gamma_N/N\sim C\alpha^{-p}$ over the ten tested values gives effective exponents
+$p\simeq0.098$ on B1 and $p\simeq0.281$ on B2 in both precisions, against the proven exponent $3$.
+At $\alpha=10^{-3}$ the factor $6/\alpha^3$ exceeds the measured $\Gamma_N/N\simeq3.6$ by about
+nine orders of magnitude. On B2 the local and trailing factors entering~\eqref{eq:growth} each
+carry substantial $\alpha$ dependence, but most of it disappears after division by
+$\|V^{N+1}\|_\infty$. This identifies the separate-factor estimates in the proof as the point a
+sharper argument would have to improve; no asymptotic law in $\alpha$ is inferred from the finite
+grid.
+
+\subsection{An exactly conditioned adversarial family}
+\label{sec:adversarial}
+
+The clearest evidence that the pivot rule, not the conditioning, can govern the growth is a
+family on which the conditioning is fixed at its optimum: let $n$ be even and $A$ block diagonal
+with $2\times2$ blocks
+%
+\begin{equation}\label{eq:adversarial}
+A_\varepsilon^{(2)} =
+\begin{pmatrix}
+\varepsilon & \sqrt{1-\varepsilon^2}\\[2pt]
+\sqrt{1-\varepsilon^2} & -\varepsilon
+\end{pmatrix},
+\qquad 0<\varepsilon<1 .
+\end{equation}
+%
+Each block is orthogonal and symmetric, so $A$ is orthogonal and $\kappa_2(A)=1$ exactly.
+The behavior of the pivot rules on this family is not merely observed but proved.
+
+\begin{proposition}[Exactly conditioned adversarial family]\label{prop:adversarial}
+Let $n$ be even, let $0<\varepsilon<1/\sqrt2$, write $c=\sqrt{1-\varepsilon^2}$, and let $A$
+be block diagonal with blocks~\eqref{eq:adversarial}. Apply~\eqref{eq:castillo-pivot} in
+exact arithmetic with $V^1=I$, rows in order, and the permutation convention of
+\S\ref{sec:onestep}. Then:
+\begin{enumerate}
+\item under the first-nonzero rule the pivot values alternate between $\varepsilon$ and
+$-1/\varepsilon$, the scaled pivots between $\varepsilon$ and $1$, so that
+$p^{\rm sc}_{\min}=\varepsilon$, and
+\[
+\max_{1\le j\le N+1}\|V^j\|_2
+= \frac{\sqrt{1+c}}{\varepsilon}
+= \frac{\sqrt2}{\varepsilon}\bigl(1+O(\varepsilon^2)\bigr),
+\qquad\text{independently of }n;
+\]
+\item under any rule that selects a pivot of maximal modulus, or of maximal scaled modulus,
+the scaled pivots alternate between $c$ and $1$, so that $p^{\rm sc}_{\min}=c>1/\sqrt2$, and
+\[
+\max_j\|V^j\|_2
+=\frac{1}{\sqrt{1-\varepsilon}}
+=1+\frac{\varepsilon}{2}+O(\varepsilon^2);
+\]
+\item in both cases $V^{N+1}=A^{-1}=A$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+The blocks decouple.  In one block, first-nonzero selects $\varepsilon$, giving
+$v_1^2=e_1/\varepsilon$ and $v_2^2=e_2-(c/\varepsilon)e_1$; the Gram matrix has squared singular
+values $(1\pm c)/\varepsilon^2$.  A maximum-modulus or maximum-scaled rule instead selects $c$ and,
+after the interchange,
+\[
+V^2=\begin{pmatrix}0&1\\1/c&-\varepsilon/c\end{pmatrix},
+\qquad
+(V^2)^TV^2=c^{-2}\begin{pmatrix}1&-\varepsilon\\-\varepsilon&1\end{pmatrix},
+\]
+whose squared singular values are $1/(1+\varepsilon)$ and $1/(1-\varepsilon)$.  The terminal
+invariant gives $V^{N+1}=A^{-1}=A$.  SM10 gives the floating-point confirmation.
+\end{proof}
+
+The campaign confirms Proposition~\ref{prop:adversarial} in floating point across eight decades of
+$\varepsilon$, the measured tableau growth of \texttt{R0\_C0} agreeing with
+$\sqrt{1+c}/\varepsilon$ to all recorded digits. The no-row-pivoting magnitude rules agree with the exact value $(1-\varepsilon)^{-1/2}$ and therefore
+tend to one as $\varepsilon\to0$; for example, \texttt{R0\_C2} gives tableau growth $1.05$
+at $\varepsilon=10^{-1}$, $1.01$ at $10^{-2}$, and $1.00$ to displayed precision thereafter.
+A variant with geometrically decaying block parameters reproduces the effect with repeated rather
+than isolated bad pivots (SM10). Two consequences follow, and one caution. First, the tableau growth, and with
+it the hypotheses of the conditional statement following~\eqref{eq:hypotheses}, is not controlled by $\kappa_2(A)$, so any
+conditional statement phrased through pivot size and growth must retain a hypothesis on the pivot
+sequence. Second, tableau growth is not in general a proxy for conditioning, so the close
+tracking of $\max_j\|\widehat V_j\|_2$ by $\|A^{-1}\|_2$ observed in \S\ref{sec:law} must not be
+read as a universal relation. The caution is that this family does not by itself decide whether
+the backward error \emph{itself} admits a bound in $\kappa_2(A)$ alone, its computed residuals
+being of order $\varepsilon$, so it defeats the bound and not the quantity bounded. The
+repeated-bad-pivots variant adds strong finite-precision evidence for the unpivoted rule: its extreme record, at
+$n=32$ in binary64 with $\varepsilon=10^{-6}$ and geometric decay $0.3$, has
+%
+\begin{equation}\label{eq:counterexample}
+\kappa_2(A) = 1 + O(10^{-16}),
+\qquad
+\kappa_2(\widehat V_{N+1}) = 1,
+\qquad
+\eta_{\mathrm{inv}} = 6.80\times10^{-9},
+\end{equation}
+%
+that is $\eta_{\mathrm{inv}}/u = 6.13\times10^{7}$, the largest normalized value recorded
+anywhere in the campaign. At a minimum, this record shows that any $O(u)$ backward-error bound for the first-nonzero
+rule whose constant is controlled only by $\kappa_2(A)$ would require a constant exceeding
+$6.1\times10^7$ already at $\kappa_2(A)=1$ over the tested family. Unlike the exact tableau-growth
+construction above, a finite experiment does not rule out every conceivable function of
+$\kappa_2(A)$; it rules out a practically meaningful modest constant on the tested regime. The
+large normalized error is not isolated: over the family the median rises from $4.1\times10^{1}$ at decay
+$1.0$ to $1.6\times10^{4}$ at decay $0.1$, and from $1.4\times10^{3}$ at $\varepsilon=10^{-2}$ to
+$4.5\times10^{5}$ at $\varepsilon=10^{-10}$. We claim no asymptotic law: the growth in
+$\varepsilon$ is markedly sublinear, roughly $\varepsilon^{-0.3}$ over eight decades, the maxima
+are not monotone, and the two parameters are not varied independently. For the pivoted variants,
+whose normalized values never exceed $1.8\times10^{2}$, the question remains open.
+
+\subsection{Empirical predictors and the explicit-inverse barrier}
+\label{sec:predictors}
+
+Over the $51\,392$ positive reliability-screened records, the spread
+$\log_{10}(q_{99}/q_{01})$ of $\eta_{\rm inv}$/predictor is $6.9$ for
+$\|D_N\|_2/\|A\|_2$ and $8.3$ for $un/p_{\min}^{\rm sc}$, versus $17.2$ for
+$un\kappa_2(A)$ and $19.8$ for $\Lambda_N^{\rm corr}$.  Thus $D_N$ is the tightest ex-post
+diagnostic tested, whereas the scaled pivot is the strongest local indicator.  The empirical law
+\begin{equation}\label{eq:empirical-law}
+\eta_{\rm inv}\le\frac{un}{p_{\min}^{\rm sc}}
+\end{equation}
+holds in $99.0\%$ of screened records but fails on $20.5\%$ of Vandermonde cases, sometimes by more
+than three orders of magnitude.  Regression is compatible with the importance of the pivot, but
+leave-one-family-out tests show that growth variables retain class-dependent information (SM5--SM6).
+
+Independently of the algorithm,~\eqref{eq:deltaA} gives the explicit-inverse barrier
+\begin{equation}\label{eq:barrier}
+\eta_{\rm inv}\le r_R\,\kappa_2(\widehat V_{N+1}).
+\end{equation}
+Hence a residual of order $u$ need not imply a matrix backward error of order $u$ when the stored
+inverse is ill-conditioned~\cite{DuCrozHigham1992,Higham2002}.  Our operational screen is designed
+to avoid interpreting unresolved solves as measurements of $\eta_{\rm inv}$; we make no claim that
+\eqref{eq:barrier} is close to equality in the campaign.
+
+\subsection{How row pivoting degrades the residual}
+\label{sec:masking}
+
+A dedicated same-matrix replay on the two diagonally dominant ensembles recomputed $D_N$, $R_N$,
+and $AE_{N+1}$ under four variants, yielding $1.04$ million complete
+\texttt{R1\_C1}/\texttt{R0\_C1} pairs.  Passing from \texttt{R0\_C1} to \texttt{R1\_C1}
+multiplies the geometric mean of $\|D_N\|_2$ by $2.57$ and $2.16$ on B1 and B2 in binary32, and by
+$2.49$ and $2.13$ in binary64.  The corresponding ratios for $\|AE_{N+1}\|_2$ are essentially one,
+and $\Gamma_N/n$ changes only marginally.  Row pivoting therefore amplifies the formation defect on
+these structured classes rather than the application error.
+
+The final residual need not inherit this amplification proportionally.  With
+$H=(\|D_N\|_2^2+\|AE_{N+1}\|_2^2)^{1/2}$, $Q=\|R_N\|_2/H$, and baseline weight
+$w=\|D_N\|_2^2/H^2$, the pairwise ratios satisfy exact scalar identities.  SM8 factors the residual
+ratio into the defect amplification, a baseline-weight factor, an application-error factor, and a
+residual-suppression factor.  The dominant multiplicative attenuation is the baseline-weight factor:
+matrices on which row pivoting amplifies the defect most strongly often have small baseline defect
+weight.  All ratio identities are stated on their natural positive-denominator domain; the replay
+acceptance gate is absolute and operational rather than an interval certificate.
+
+\subsection{Dimensional scaling, and the solution backward error}
+\label{sec:scaling}
+
+Two further questions are settled briefly. First, the thirteen dimensions of the large-scale
+campaign allow the growth of the residual with $n$ to be estimated rather than assumed. Fitting
+$q_{95}(r_R/u)\sim Cn^{s}$ per cell of family, parameters and precision, with cluster-bootstrap
+intervals resampling matrices within each $n$, gives median exponents $0.22$ to $0.35$ for the
+pivoted variants and $0.49$ to $0.55$ for \texttt{R0\_C0}, with median interval widths $0.011$ to
+$0.014$. Two cautions are material: the variation between family--parameter cells, from $-3.6$ to $2.2$
+for \texttt{R0\_C0}, is an order of magnitude larger than the statistical uncertainty, so a pooled
+exponent is not meaningful; and a quadratic term in $\log n$ is preferred by AIC in $70$ to
+$94\%$ of cells, with convex curvature in the majority. These are therefore \emph{effective slopes
+over the recovered balanced range $8\le n\le512$}, not asymptotic exponents. Since the dimensions
+above $181$ come from deterministic wall-clock truncation rather than a missing-at-random sample,
+they support a finite-range trend analysis rather than a claim about the full designed population
+(SM7).
+
+Second, the normwise backward error of the computed solution,
+$\eta_{\rm sol} = \|b-A\widehat x\|_2/(\|A\|_2\|\widehat x\|_2 + \|b\|_2)$, behaves differently
+from $\eta_{\mathrm{inv}}$, as Proposition~\ref{prop:sol-vs-inv} predicts. Two refinement steps
+bring the Castillo medians from $10^{-9}$ to $4$--$6\times10^{-15}$ while leaving
+$\eta_{\mathrm{inv}}$ unchanged, the median reduction of the forward error over the large-scale
+campaign being $56\%$, though several binary32 blocks show no reduction of $q_{95}$ at all. Taken
+over all successful cases the $99$th percentile of $\eta_{\rm sol}$ appears to reverse the
+ordering of \S\ref{sec:comparison}, ranking \texttt{R0\_C0} ahead of the pivoted variants, and
+the reversal survives restriction to the configurations solved by all five; but it is confined to
+the regime in which $\eta_{\rm sol}$ ceases to be informative, ninety percent of the cases with
+$\eta_{\rm sol}>10^{-3}$ being binary32 with median condition number $2.3\times10^{8}$ and median
+forward error $1.27$, and on the resolved subset \texttt{R0\_C0} becomes the worst variant by
+factors $3.8$ and $4.4$ (SM9). The normwise solution backward error is therefore not a reliable
+instrument for ranking inversion methods once the problem is unresolved in the working
+precision.
+
+\section{Consequences for the backward-error analysis}
+\label{sec:discussion}
+
+The experiments change the practical reading of the exact formulas in three ways.  First, the
+transformation defect is not a small correction to a useful accumulation estimate: on the screened
+records it is the sharpest ex-post diagnostic measured, whereas more than $99.99\%$ of the full
+upper bound comes from the accumulation term in the median.  A sharper theory should therefore
+control the formation of the elementary transformations without replacing the trailing products by
+separate worst-case norms at every step.
+
+Second, stability is conditional and the local bottleneck is the pivot together with dot-product
+sensitivity.  The empirical pivot relation succeeds on most tested records but fails systematically
+on Vandermonde matrices, where cancellation matters.  The exact orthogonal family proves that no
+bound on intermediate tableau growth can depend on $\kappa_2(A)$ alone; the repeated-bad-pivot
+family adds a finite-precision warning for the backward error itself, without proving the
+nonexistence of every possible condition-number-only function.  Conversely, strict row diagonal
+dominance protects the active pivot and forces first-nonzero and maximum-modulus onto the same benign
+path.  Magnitude-based selection is therefore an essential safeguard on the unstructured and
+adversarial classes tested here, but no single magnitude rule is uniformly best.
+
+Third, inverse stability and solution stability must be separated.  Equation~\eqref{eq:sol-residual}
+shows that a right-hand side probes one direction of $R_N$ and adds only the rounding of one
+matrix--vector product; iterative refinement changes this solution error without changing the stored
+inverse.  The apparent ranking reversal in $\eta_{\rm sol}$ occurs only in the unresolved regime and
+disappears once $\kappa_2(A)u<10^{-2}$ is imposed (SM9).
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+The explicit Purcell--Egerv\'ary--Castillo inverse has two distinct rounding mechanisms.  The exact
+identity $R_N=D_N-AE_{N+1}$ separates the transformation defect created while the factors are formed
+from the application error accumulated while they are applied, and
+$\Delta A=R_N\widehat V_{N+1}^{-1}$ converts the residual into the inverse backward error.  The
+resulting growth factor has a universal linear floor, while strict row diagonal dominance yields the
+exact bound $\Gamma_N\le6n/\alpha^3$ and a stable first-nonzero/maximum-modulus pivot path.
+
+Numerically, the classical accumulation estimate is rigorous but far too pessimistic; the defect is
+the sharpest ex-post diagnostic measured and the scaled pivot is the dominant local indicator.  The
+orthogonal construction proves that intermediate growth cannot be controlled by $\kappa_2(A)$
+alone, while the campaigns show that magnitude-based pivoting is an important safeguard on the
+unstructured and adversarial classes tested.  No unconditional backward-stability theorem follows,
+and no magnitude rule is uniformly best.  A sharper theory should propagate the local formation
+defect while preserving cancellations in the trailing products and retaining both pivot size and
+dot-product sensitivity.
+
+\par\medskip
+\noindent\textbf{Data and code availability.} Code and reproducibility data are available at \href{https://doi.org/10.5281/zenodo.21794454}{doi:10.5281/zenodo.21794454}.
+\par
+
+\par\medskip
+\noindent\textbf{Acknowledgments.}
+The author acknowledges the technical expertise and assistance provided by the SCBI (Supercomputing and Bioinformatics Center) at the Universidad de M\'alaga, including access to the Picasso Supercomputer.
+\par
+
+\bibliographystyle{siamplain}
+\bibliography{castillo_refs}
+
+\end{document}

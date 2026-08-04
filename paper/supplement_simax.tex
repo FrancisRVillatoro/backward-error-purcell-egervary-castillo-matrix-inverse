@@ -1,0 +1,1024 @@
+\documentclass[supplement,review,onefignum,onetabnum]{siamart251216}
+
+% Mathematical symbols. The SIAM class already loads amsmath.
+\usepackage{amssymb}
+
+% Tables.
+\usepackage{booktabs}
+
+% Oxford comma in multiple cleveref references.
+\newcommand{\creflastconjunction}{, and~}
+
+% Custom mathematical notation.
+\newcommand{\fl}{\operatorname{fl}}
+\newcommand{\R}{\mathbb{R}}
+
+\emergencystretch=1.5em
+
+\newcommand{\submissiondate}{August 03, 2026}
+
+\title{Supplementary Materials: Backward Error of the Matrix Inverse in the Purcell--Egerv\'ary--Castillo Pivoting Transformation%
+\thanks{Submitted to the editors \submissiondate.}}
+
+% Running headers. The abbreviated title must not exceed 50 characters.
+\headers{Supplementary Materials}{F. R. Villatoro}
+
+\author{Francisco R. Villatoro%
+\thanks{Escuela de Ingenier\'ias Industriales, Universidad de M\'alaga,
+29071 M\'alaga, Spain
+(\email{frvillatoro@uma.es}).}}
+
+\begin{document}
+
+\maketitle
+
+These supplementary materials collect historical, technical, and methodological detail for the
+main paper: the extended genealogy of the method (SM1), proof details omitted from the main
+floating-point analysis (SM2), the design and provenance of the two campaigns (SM3), reliability
+accounting (SM4), the empirical pivot law by family and variant (SM5), predictor comparison and
+regression (SM6), per-family results of the large-scale campaign (SM7), the defect replay and its
+masking decomposition (SM8), the solution backward-error reversal (SM9), the adversarial families
+(SM10), high-precision validation of the decomposition (SM11), and the reproducibility archive and retained bulk outputs (SM12). Notation follows the
+main paper. For a row-pivoted variant let $\Pi$ be the final processed-row permutation, set
+$\bar A=\Pi A$ and $\bar b=\Pi b$, and let $T$ be the terminal tableau. The inverse represented for
+the original matrix is $X=T\Pi$, with
+\[
+I-AX=\Pi^T(I-\bar A T)\Pi,
+\qquad
+(I-AX)X^{-1}=\Pi^T(I-\bar A T)T^{-1},
+\qquad Xb=T\bar b.
+\]
+Thus the spectral, infinity, and Frobenius diagnostics used here are unchanged by working with the
+row-permuted problem. As in the main paper, we suppress the bars in theoretical formulas and write
+$\widehat V_{N+1}$ for the computed terminal tableau, restoring $\Pi$ explicitly in
+implementation-facing identities when useful. With this convention, $u$ is the unit roundoff,
+$\eta_{\mathrm{inv}}=\|(I-A\widehat V_{N+1})\widehat V_{N+1}^{-1}\|_2/\|A\|_2$ is the normwise
+inverse backward error,
+$r_R=\|I-A\widehat V_{N+1}\|_2/(\|A\|_2\|\widehat V_{N+1}\|_2)$ is the scaled right inverse
+residual, $\eta_{\rm sol}=\|b-A\widehat x\|_2/(\|A\|_2\|\widehat x\|_2+\|b\|_2)$ is the normwise
+solution backward error for $\widehat x=\fl(\widehat V_{N+1}b)$,
+$D_N=I-A\widetilde V_{N+1}$ is the transformation defect, and $p^{\rm sc}_{\min}$ is the minimum
+scaled pivot. The five pivoting variants \texttt{R0\_C0}, \texttt{R0\_C1}, \texttt{R0\_C2},
+\texttt{R1\_C1}, and \texttt{R2\_C2} are defined in the main paper. We avoid hard-coded theorem
+numbers below so that the supplement remains synchronized with revisions of the main manuscript.
+
+\section{Extended genealogy of the method}
+\label{sm:genealogy}
+
+This section records the parts of the genealogy that the introduction of the main
+paper compresses. Throughout, ``the transformation'' refers to the pivoting
+transformation~(1.1) of the main paper.
+
+\paragraph{Purcell (1953) and Egerv\'ary (1956--1960)}
+Purcell~\cite{Purcell1953} homogenizes $Ax=b$ by an artificial variable, starts
+from the Cartesian unit vectors, and produces at each step a set of vectors
+satisfying the first $i$ equations, the multipliers being ratios of inner
+products exactly as in the transformation; this is precisely the construction of
+\cite[\S5.9]{CastilloCJPC2000}. Forsythe~\cite{Forsythe1954}, reviewing
+Purcell's paper, attributed the idea also to Motzkin. Egerv\'ary showed
+in~\cite{Egervary1957} that the vector method is a particular case of his rank
+reduction procedure, and in the posthumous paper~\cite{Egervary1960} gave the
+general matrix form
+%
+\begin{equation}\label{eq:sm-rank-reduction}
+\widetilde A = A - A X \bigl(Y^T A X\bigr)^{-1} Y^T A ,
+\end{equation}
+%
+together with two observations that are directly relevant to the main paper:
+the elementary transformations are \emph{oblique projectors}, since
+$A\bigl(I - X(Y^TAX)^{-1}Y^TA\bigr) = \bigl(I - AX(Y^TAX)^{-1}Y^T\bigr)A$, and
+the initial matrix need not be the identity, which is the situation of
+Example~3 of~\cite{CastilloCJPC2000}. A modern account of the rank reduction
+theory is given by Gal\'antai~\cite{Galantai2009,Galantai2001}, and its
+connection with Purcell's method is reviewed by
+Heged\H{u}s~\cite{Hegedus2010}.
+
+\paragraph{Hestenes (1958)}
+Beyond the results quoted in the main paper, Theorem~6.6
+of~\cite{Hestenes1958} shows that the deviation of the multiplier matrix from
+the identity measures the departure from biorthogonality, which his \S7 turns
+into an inexpensive running diagnostic; and his \S\S7--8 contrast the fragile
+choice $V^{(0)}=I$, for which the pivots are ratios of leading principal minors
+of $A$ itself, with the choice $V^{(0)}=U^*$, which yields a Gram matrix whose
+leading principal minors are positive (Theorem~6.5).
+
+\paragraph{The ABS class (1984--)}
+Abaffy, Broyden, and Spedicato~\cite{AbaffyBS1984} placed the method inside a
+general class of direct projection algorithms, introducing the term
+\emph{implicit LU factors} and unifying a large family of finitely terminating
+methods~\cite{AbaffySpedicato1989}. Within the ABS framework the numerical
+behavior has been studied along two lines: sensitivity analysis in the model of
+Broyden~\cite{Broyden1974,Broyden1985}, extended by
+Gal\'antai~\cite{Galantai1991} and continued for two-step variants
+in~\cite{AsadbeigiPBJ2017}, and forward error analysis in floating-point
+arithmetic~\cite[Ch.~12]{AbaffySpedicato1989}, which yields growth functions
+involving $\kappa(A)$ that the authors themselves describe as complex and
+unduly pessimistic. Neither line produces a backward error bound. The ``twice
+is enough'' criterion of Parlett and Kahan~\cite{Parlett1980}, in the modified
+form due to Heged\H{u}s, has been transferred to the ABS classes by Abaffy and
+Fodor~\cite{AbaffyFodor2015}, providing a practical, selective alternative to
+unconditional reorthogonalization.
+
+\paragraph{Benzi, Meyer, and T\r{u}ma (1993--1998)}
+Benzi and Meyer~\cite{BenziMeyer1995}, following Benzi's
+thesis~\cite{Benzi1993} and the independent work of T\r{u}ma~\cite{Tuma1993},
+showed that, started from the identity, the process is mathematically
+equivalent to ``right'' Gaussian elimination and produces Crout's form of the
+LU decomposition. Benzi and T\r{u}ma~\cite{BenziTuma1998} extended the
+construction to the nonsymmetric case by biconjugation, recovering the pivot
+characterization $p_i = \Delta_i/\Delta_{i-1}$ already present
+in~\cite{Hestenes1958}. The discrepancy between the computed $w_i^TAz_i$ and
+$z_i^TA^Tw_i$ had been observed much earlier by Fox, Huskey, and
+Wilkinson~\cite{FoxHW1948}, who attribute it to rounding and choose to retain
+rather than discard the off-diagonal terms. The symmetric positive definite
+case and the resulting AINV preconditioner are treated
+in~\cite{BenziMeyerTuma1996}, its breakdown-free stabilization
+in~\cite{BenziCullumTuma2000}.
+
+\paragraph{Perturbation bounds}
+Gal\'antai~\cite{Galantai2003,Galantai2005} derives exact perturbation
+expressions for the LU, LDU, and Cholesky factorizations, applies them to the
+full rank factorizations produced by Egerv\'ary's rank reduction procedure, and
+concludes that the latter is stable whenever the LDU factorization of $Y^TAX$
+is stable. These are the sharpest available results on the method; they
+quantify the sensitivity of the computed factors to changes in the data, not
+the existence of a nearby matrix of which the computed inverse is the exact
+inverse.
+
+\section{Proof details omitted from the floating-point analysis}
+\label{sm:proofs}
+
+\paragraph{Compact form of the local formation defect}
+Use the permuted-column notation of the main paper,
+$\overline V_j=\widehat V_jP_j$ and
+$\overline v_k^{\,j}=\overline V_je_k$, and put
+$q_k=|a_j|^T|\overline v_k^{\,j}|$. The componentwise estimates are
+%
+\[
+|\varphi_{j,j}|
+\le u+\gamma_n q_j|\hat\beta|,
+\qquad
+|\varphi_{j,k}|
+\le\gamma_{n+1}q_k+\gamma_n q_j|\hat\alpha_k|.
+\]
+%
+The $k$th column of $|\widehat B_j|$ is
+$e_k+|\hat\alpha_k|e_j$ for $k\ne j$ and $|\hat\beta|e_j$ for $k=j$. The off-pivot
+components are therefore bounded by
+$\gamma_{n+1}|a_j|^T|\overline V_j|\,|\widehat B_j|$. For the pivot component no separate
+relative-accuracy hypothesis is required. If
+$\overline t_j^{\,j}$ is the selected computed pivot in permuted order, then
+$|\overline t_j^{\,j}|\le(1+\gamma_n)q_j$ and
+$|\hat\beta|\ge(1-u)/|\overline t_j^{\,j}|$, whence
+%
+\[
+q_j|\hat\beta|\ge\frac{1-u}{1+\gamma_n}=(1-u)(1-nu).
+\]
+%
+Consequently, if $(n+1)u<1$,
+%
+\[
+u+\gamma_n q_j|\hat\beta|
+\le
+\left(\gamma_n+\frac{u}{(1-u)(1-nu)}\right)q_j|\hat\beta|
+\le\gamma_{n+1}q_j|\hat\beta|,
+\]
+%
+because
+%
+\[
+\gamma_{n+1}-\gamma_n-
+\frac{u}{(1-u)(1-nu)}
+=
+\frac{nu^2}{(1-u)(1-nu)(1-(n+1)u)}\ge0.
+\]
+%
+Thus
+$|\varphi_j^T|\le\gamma_{n+1}|a_j|^T|\widehat V_jP_j|\,|\widehat B_j|$.
+Notice that the absolute value on $\hat\beta$ is essential because the pivot can be negative.
+
+\paragraph{The cross term of the telescoped defect}
+The second sum in the telescoped representation of $D_N$ vanishes when the transformations are
+applied exactly and in general satisfies
+%
+\[
+\left\|\sum_{j=1}^{N}e_j a_j^TE_j\widehat{\mathcal B}_{j:N}\right\|_2
+\le
+\gamma_2\max_j\|a_j\|_2
+\sum_{j=2}^{N}\|\widehat{\mathcal B}_{j:N}\|_2
+\sum_{l=1}^{j-1}
+\bigl\|\,|\widehat V_lP_l|\,|\widehat B_l|\,\bigr\|_2
+\|\widehat{\mathcal B}_{l+1:j-1}\|_2,
+\]
+%
+by applying the accumulation bound to each partial error
+$E_j=\sum_{l<j}F_l\widehat{\mathcal B}_{l+1:j-1}$. Thus the formation and application mechanisms
+are algebraically distinct but coupled; they should not be described as independent sources.
+
+\paragraph{Proof of the individual-solution bound}
+Assume $b\ne0$. For a floating-point matrix--vector product there is a $\Delta V$ satisfying
+$|\Delta V|\le\gamma_n|\widehat V_{N+1}|$ such that
+$\widehat x=(\widehat V_{N+1}+\Delta V)b$. Hence
+%
+\[
+b-A\widehat x=R_Nb-A\Delta Vb.
+\]
+%
+Since the denominator of $\eta_{\rm sol}$ is at least $\|b\|_2$,
+%
+\[
+\eta_{\rm sol}
+\le
+\frac{\|R_Nb\|_2}{\|b\|_2}
++
+\gamma_n\|A\|_2\bigl\|\,|\widehat V_{N+1}|\,\bigr\|_2.
+\]
+%
+Moreover $\Delta A=R_N\widehat V_{N+1}^{-1}$ implies
+$R_N=\Delta A\widehat V_{N+1}$, and therefore
+%
+\[
+\frac{\|R_Nb\|_2}{\|b\|_2}
+\le
+\eta_{\rm inv}\,\|A\|_2\,\|\widehat V_{N+1}\|_2.
+\]
+%
+This makes explicit the conditioning factor in any uniform comparison between solution and inverse
+backward error.
+
+\paragraph{Full proof of the diagonal-dominance growth bound}
+Let $A$ be strictly row-diagonally dominant with
+$\|A\|_\infty=1$ and gap $\alpha>0$. For $i\le j$,
+%
+\[
+|a_{ii}|-\sum_{k\le j,\,k\ne i}|a_{ik}|
+\ge
+|a_{ii}|-\sum_{k\ne i}|a_{ik}|
+\ge\alpha,
+\]
+%
+so every leading principal submatrix $A_j$ inherits the same gap. If $A_jx=b$ and
+$|x_i|=\|x\|_\infty$, then
+$|b_i|\ge\alpha\|x\|_\infty$, proving
+$\|A_j^{-1}\|_\infty\le1/\alpha$.
+
+One step of elimination replaces, for $i,k\ge2$,
+$a_{ik}$ by $a'_{ik}=a_{ik}-(a_{i1}/a_{11})a_{1k}$. Using
+$|a_{11}|-\sigma_1\ge\alpha$ gives
+%
+\[
+|a'_{ii}|-\sum_{k\ge2,\,k\ne i}|a'_{ik}|
+\ge
+(|a_{ii}|-\sigma_i)
++
+|a_{i1}|\left(1-\frac{\sigma_1}{|a_{11}|}\right)
+\ge\alpha.
+\]
+%
+Hence every Schur complement has the same positive gap. Its active pivot row therefore satisfies
+$|t_l^{\,l}|\ge\alpha$ and, for every $k>l$,
+$|t_l^{\,l}|-|t_k^{\,l}|\ge |t_l^{\,l}|-\sum_{m>l}|t_m^{\,l}|\ge\alpha$.
+Thus both the first-nonzero and maximum-modulus column rules select the diagonal pivot and perform
+no column interchange.
+
+The explicit-tableau identity gives
+%
+\[
+\|V^{j+1}\|_\infty
+\le
+\max\{1,\|A_j^{-1}\|_\infty(1+\|A_j'\|_\infty)\}
+\le\frac{2}{\alpha},
+\qquad
+\|(V^{j+1})^{-1}\|_\infty\le1.
+\]
+%
+Thus $\|t\|_1\le2/\alpha$, and the nontrivial row of $B_l$ has $1$-norm at most
+$(1+2/\alpha)/\alpha\le3/\alpha^2$. Finally,
+$\mathcal B_{l+1:N}=(V^{l+1})^{-1}V^{N+1}$ in exact arithmetic, so the terminal norm cancels the
+denominator of the growth factor and
+%
+\[
+\Gamma_N
+\le
+N\frac{2}{\alpha}\frac{3}{\alpha^2}
+=
+\frac{6n}{\alpha^3}.
+\]
+
+\paragraph{From the exact path to the first-order floating-point residual}
+For fixed $A$ and $n$, the proof above gives the quantitative separations
+$|t_l^{\,l}|\ge\alpha$ and
+$|t_l^{\,l}|-|t_k^{\,l}|\ge\alpha$ for every admissible competitor $k>l$. Excluding underflow and
+overflow, a finite-step induction along the exact path gives
+$\widehat V_j=V^j+O(u)$ and computed dot products equal to their exact-path values plus $O(u)$.
+For all sufficiently small $u$ these perturbations are smaller than the fixed positive pivot and
+comparison margins, so the computed first-nonzero and maximum-modulus rules follow the exact path,
+and $\widehat B_j=B_j+O(u)$ at every step. Hence the computed growth factor is
+$\Gamma_N+O(u)$. Combining this with
+$\gamma_{n+3}=(n+3)u+O(u^2)$ gives
+%
+\[
+r_R^\infty
+\le
+\frac{6n(n+3)}{\alpha^3}u+O(u^2),
+\qquad u\to0.
+\]
+%
+The hidden constant is allowed to depend on the fixed matrix and on $n$; no uniform finite-$u$
+path-preservation theorem is claimed. The ``first-nonzero'' rule here is the rule of the main paper,
+which accepts the first computed pivot unequal to zero in the working format; a tolerance-based
+variant would require a separate asymptotic specification of its threshold.
+
+\section{Design of the two campaigns}
+\label{sm:design}
+
+Two campaigns are reported. As in the main analysis, the matrix $A$ denotes the array after
+conversion to the working format; input-conversion error from an external real-valued matrix is not
+folded into the reported arithmetic error. The \emph{mechanistic} campaign, described in the
+remainder of this section, was designed to identify which quantity governs the backward error. The
+\emph{large-scale} campaign was designed to test whether those conclusions survive dimension,
+structure and massive sampling, and to measure the quantities the analysis defines but does not
+bound. Its design is factorial and balanced by construction: fourteen matrix families, the
+thirteen dimensions $n\in\{8,11,16,23,32,45,64,91,128,181,256,362,512\}$, both precisions, the
+five variants of Table~1 of the main paper, and three refinement levels, with an identical
+multiset of generating parameters at every $n$ so that no aggregate mixes populations. Stochastic
+families receive $20\,000$ realizations per cell, of which a balanced subsample of exactly $2000$
+is retained in every dimension; deterministic families, for which repeated realizations carry no
+information, receive one matrix per (parameter, $n$) pair and are reported separately as
+structured and extremal test cases, never as a sample. Seeds are the hash of
+(family, $n$, replica) and are recorded. The unit roundoff is fixed throughout at $u_{32}=2^{-24}$
+and $u_{64}=2^{-53}$ and stored with every record. Diagnostics of the inverse, which do not
+depend on the right-hand side, are stored in a table keyed by (matrix, variant, precision);
+diagnostics of the solution are stored separately, keyed additionally by right-hand side and
+refinement level. Two families are constructed specifically for the diagonal-dominance theorem of the main paper,
+at the reference level with $\|A\|_\infty=1$ and nominal dominance gap on the grid
+$\alpha\in\{10^{-3},2\!\cdot\!10^{-3},5\!\cdot\!10^{-3},10^{-2},2\!\cdot\!10^{-2},
+5\!\cdot\!10^{-2},0.1,0.2,0.3,0.5\}$: random sign patterns, and
+\[
+A=\frac{I-\beta P}{1+\beta},\qquad \beta=\frac{1-\alpha}{1+\alpha},
+\]
+where $P$ is zero-diagonal and row-stochastic, with positive off-diagonal entries. The latter formula gives row norm one and
+gap $(1-\beta)/(1+\beta)=\alpha$ algebraically. The measured gap of the binary64 reference matrix
+is stored as \texttt{alpha\_measured}; conversion to binary32 or binary64 working arrays is a
+separate floating-point operation, so finite-precision theorem audits are reported as numerical
+checks rather than exact identities. The code, generation manifests, canonical post-processing scripts, and the result summaries needed
+to reproduce the paper will be released in a public GitHub repository accompanying the manuscript.
+The release will record the exact commit hash and cryptographic digests of the canonical artifacts;
+all reported statistics refer to this single recovered campaign and its explicitly identified
+follow-up audits.
+
+\paragraph{Independent DD regression verifier}
+After synchronizing the residual constant with the $\gamma_{n+3}$ bound of the revised analysis, a
+standalone binary64 verifier was run on four DD constructions, the four dimensions
+$n\in\{8,16,32,64\}$, and six gaps $\alpha\in\{0.5,0.2,0.1,0.05,0.02,0.01\}$, for $96$ cases.
+All regression checks passed. The largest observed ratios were $4.126249\times10^{-2}$ for
+$\Gamma_N/(6n/\alpha^3)$ and $1.520482\times10^{-2}$ for
+$r_R^\infty/(\gamma_{n+3}\Gamma_N)$, and no column interchange occurred. This is an independent
+implementation regression check, not a numerical proof of the theorem.
+
+The campaign comprises $18\,744$ matrix/right-hand-side configurations,
+evaluated in binary32 and binary64 arithmetic, with zero, one, and two steps of
+iterative refinement, and a residual accumulated in extended precision. All
+computations were carried out with a single implementation in which the
+elementary transformations, the column permutations, and the intermediate
+tableaux are recorded, so that every diagnostic is derived from the same
+computed quantities as the inverse itself. The reference methods are LU with
+partial pivoting, Householder QR, the SVD, and Gauss--Jordan inversion with
+partial and with complete pivoting; the Gauss--Jordan references are included
+because they, like the pivoting transformation, form an explicit inverse.
+
+\paragraph{Matrix families}
+Seven families are used.
+
+\begin{enumerate}
+\item \texttt{random\_conditioned}: random matrices with prescribed singular
+values, $A = U\Sigma W^T$ with $U$, $W$ random orthogonal and three singular
+value profiles (geometric decay, one small singular value, and clustered
+spectra) for $\kappa_2 \in \{1,10^2,10^4,\dots,10^{14}\}$,
+$n\in\{8,16,32,64,128\}$, and twenty replicas per configuration. Since
+$\|A\|_2=1$ by construction, $\kappa_2(A)=\|A^{-1}\|_2$ on this family.
+
+\item \texttt{hilbert}: Hilbert matrices with $4\le n\le 20$.
+
+\item \texttt{vandermonde}: Vandermonde matrices with equispaced, Chebyshev,
+clustered, near-unit, and random nodes.
+
+\item \texttt{kahan\_type}: Kahan-type triangular growth examples.
+
+\item \texttt{adversarial\_rotation}: the orthogonal block-diagonal family of
+the adversarial proposition of the main paper, with $2\times2$ orthogonal symmetric blocks
+parametrized by $\varepsilon\in\{10^{-1},10^{-2},10^{-4},\dots,10^{-14}\}$.
+
+\item \texttt{repeated\_bad\_pivots}: the geometric-decay variant of the same
+family, described in section~\ref{sm:adversarial}.
+
+\item \texttt{scaled\_adversarial}: row- and column-scaled versions of the
+adversarial construction, designed to separate the absolute and scaled pivot
+scores.
+\end{enumerate}
+
+\paragraph{Right-hand sides}
+Right-hand sides are generated from a known solution in extended precision, so
+that forward errors are measured against a reference accurate to well below the
+working precision. Three types are used: random, alternating-sign, and the
+right singular vector of $A$ associated with $\sigma_{\min}$, the last chosen
+to probe the direction in which the residual operator is largest.
+
+\paragraph{Completeness}
+All $18\,744$ designed cases were reached, producing $552\,747$
+records across methods and refinement levels with no failures of the case driver. Of the designed
+cases, $99$ contain a nonfinite binary32 input matrix, generated parameters
+whose entries overflow single precision, and are rejected before any solver
+is called; the remaining $18\,645$ form the common subset on which all methods
+are compared.
+
+\section{Reliability of the measured quantities}
+\label{sm:reliability}
+
+\begin{table}
+\centering
+\caption{Paired ratio $r_R^{(32)}/r_R^{(64)}$ of the scaled right inverse residual over the
+$44\,557$ matched configurations of the mechanistic campaign. The theoretical first-order scale
+ratio is $u_{32}/u_{64}=5.37\times10^8$.}
+\label{tab:sm-uscaling}
+\begin{tabular}{lrrrr}
+\hline
+Variant & pairs & $q_{25}$ & median & $q_{75}$ \\
+\hline
+\texttt{R0\_C0} & $9\,093$ & $4.73\times10^{7}$ & $2.32\times10^{8}$ & $9.32\times10^{8}$ \\
+\texttt{R0\_C1} & $8\,907$ & $2.52\times10^{8}$ & $4.48\times10^{8}$ & $5.90\times10^{8}$ \\
+\texttt{R0\_C2} & $8\,888$ & $2.49\times10^{8}$ & $4.44\times10^{8}$ & $5.97\times10^{8}$ \\
+\texttt{R1\_C1} & $8\,852$ & $2.65\times10^{8}$ & $4.51\times10^{8}$ & $5.75\times10^{8}$ \\
+\texttt{R2\_C2} & $8\,817$ & $2.72\times10^{8}$ & $4.53\times10^{8}$ & $5.89\times10^{8}$ \\
+\hline
+\end{tabular}
+\end{table}
+
+The exact normwise inverse backward error requires a solve with the computed tableau. The campaign
+does not treat an arbitrary solve through a numerically unresolved $\widehat V_{N+1}$ as a
+measurement. Instead it applies the conservative screen described in the main paper. With $W$ the
+separately maintained inverse of the accumulated product of the computed transformations, both
+$W$ and $\widehat V_{N+1}$ are cast to binary64 and the implementation forms
+%
+\[
+\delta_F
+=
+\|I-\fl_{64}(W\widehat V_{N+1})\|_F
++
+\gamma_n^{(64)}\|W\|_F\|\widehat V_{N+1}\|_F.
+\]
+%
+The second term in $\delta_F$ is the standard multiplication-roundoff allowance used by the
+code. If the two displayed terms were evaluated exactly, the triangle inequality would give
+$\|I-W\widehat V_{N+1}\|_2\le\delta_F$. Thus, for $\delta_F<1$,
+$\widehat V_{N+1}^{-1}=(I-H)^{-1}W$ with $H=I-W\widehat V_{N+1}$, and hence
+%
+\[
+\|\widehat V_{N+1}^{-1}\|_2
+\le\frac{\|W\|_2}{1-\delta_F},
+\qquad
+\kappa_2(\widehat V_{N+1})
+\le
+\frac{\|\widehat V_{N+1}\|_F\|W\|_F}{1-\delta_F}.
+\]
+%
+This motivates the implemented quantity
+%
+\[
+\kappa^{\rm scr}
+=
+\frac{\|\widehat V_{N+1}\|_F\|W\|_F}{1-\delta_F}
+\]
+%
+and the retention rule $u\kappa^{\rm scr}<10^{-2}$. The screen itself is evaluated in binary64
+without directed rounding, so we refer to retained records as \emph{reliability-screened}, not as
+formally certified evaluations of $\kappa_2(\widehat V_{N+1})$. This terminology also avoids
+confusing the operational screen with the direct condition number of the input matrix used later to
+define the well-resolved regime for solution comparisons.
+
+Of the $91\,466$ successful unrefined Castillo records in the mechanistic campaign, $52\,184$
+($57.1\%$) pass this screen. The proportion varies by less than $0.3$ percentage points across the
+five variants. Of these, $792$ have $\eta_{\mathrm{inv}}=0$ and are absent from logarithmic
+displays; all belong to the two adversarial families where the pivoted variants invert the matrix
+exactly in the recorded arithmetic. The remaining $51\,392$ positive values are the population
+used in the predictor comparison below. The scaled right residual $r_R$ requires no solve and is
+reported for every successful record.
+
+The screen is intentionally distinct from the condition
+$\kappa_2(A)u<10^{-2}$ used to classify a linear system as well resolved when comparing
+$\eta_{\rm sol}$. The former concerns the numerical evaluation of a diagnostic of the stored
+inverse; the latter concerns whether the original linear system is resolvable in the working
+precision.
+
+\section{The empirical pivot law by family and variant}
+\label{sm:law}
+
+The numerical-evidence section of the main paper reports that the empirical inequality
+$\eta_{\mathrm{inv}}\le u\,n/p^{\rm sc}_{\min}$ holds for $99.0\%$ of the
+reliability-screened records. Table~\ref{tab:sm-law-by-family} gives the breakdown by matrix
+family and by pivoting variant, in terms of the ratio
+$\eta_{\mathrm{inv}}\,p^{\rm sc}_{\min}/(u\,n)$, a value of at most $1$ meaning
+that the inequality holds. The failures are concentrated in the Vandermonde
+family and, across variants, in the rules with weaker pivoting; the ordering by
+variant reproduces that of every other inverse diagnostic in the main paper.
+
+\begin{table}
+\centering
+\caption{Behavior of the ratio $\eta_{\mathrm{inv}}\,p^{\rm sc}_{\min}/(u\,n)$ by matrix
+family and by variant. A value at most $1$ means that the empirical law of the predictor subsection of the main paper holds.}
+\label{tab:sm-law-by-family}
+\begin{tabular}{lrrrr}
+\hline
+Family & records & holds & $q_{99}$ & max \\
+\hline
+\texttt{adversarial\_rotation} & $1\,200$ & $100.0\%$ & $2.50\times10^{-1}$ & $2.80\times10^{-1}$ \\
+\texttt{repeated\_bad\_pivots} & $1\,350$ & $100.0\%$ & $2.50\times10^{-1}$ & $2.50\times10^{-1}$ \\
+\texttt{scaled\_adversarial}   & $3\,878$ & $100.0\%$ & $1.49\times10^{-1}$ & $2.50\times10^{-1}$ \\
+\texttt{hilbert}               & $75$     & $100.0\%$ & $2.03\times10^{-1}$ & $2.03\times10^{-1}$ \\
+\texttt{kahan\_type}           & $15$     & $100.0\%$ & $8.92\times10^{-1}$ & $8.92\times10^{-1}$ \\
+\texttt{random\_conditioned}   & $45\,130$& $99.1\%$  & $9.33\times10^{-1}$ & $1.22\times10^{2}$ \\
+\texttt{vandermonde}           & $536$    & $79.5\%$  & $1.32\times10^{3}$ & $3.77\times10^{3}$ \\
+\hline
+\texttt{R2\_C2} & --- & $100.0\%$ & $3.10\times10^{-1}$ & $8.92\times10^{-1}$ \\
+\texttt{R1\_C1} & --- & $99.97\%$ & $2.89\times10^{-1}$ & $2.22$ \\
+\texttt{R0\_C2} & --- & $98.5\%$  & $1.46$ & $9.48\times10^{2}$ \\
+\texttt{R0\_C1} & --- & $98.4\%$  & $1.47$ & $1.81\times10^{3}$ \\
+\texttt{R0\_C0} & --- & $98.1\%$  & $2.02$ & $3.77\times10^{3}$ \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Predictor comparison, regression, and limitations}
+\label{sm:regression}
+
+The main paper distinguishes the best ex-post diagnostic from the best local trajectory indicator.
+Table~\ref{tab:sm-predictors} compares candidate predictors through the spread of
+$\eta_{\mathrm{inv}}/\text{predictor}$ over the $51\,392$ reliability-screened records with
+$\eta_{\mathrm{inv}}>0$; smaller spread means closer tracking.
+
+\begin{table}
+\centering
+\caption{Ratio $\eta_{\mathrm{inv}}/\text{predictor}$ over the $51\,392$ screened records with
+$\eta_{\mathrm{inv}}>0$. The last column is $\log_{10}(q_{99}/q_{01})$; smaller is tighter.}
+\label{tab:sm-predictors}
+\begin{tabular}{lrrrr}
+\hline
+Predictor & $q_{50}$ & $q_{90}$ & $q_{99}$ & spread \\
+\hline
+$\|D_N\|_2/\|A\|_2$ alone     & $3.40\times10^{-1}$ & $1.17$ & $3.26\times10^{3}$ & $6.9$ \\
+$u\,n/p^{\rm sc}_{\min}$      & $5.19\times10^{-2}$ & $1.97\times10^{-1}$ & $1.02$ & $8.3$ \\
+$u\,n\,\rho_\mu$              & $6.72\times10^{-2}$ & $3.48\times10^{-1}$ & $4.76\times10^{4}$ & $12.5$ \\
+$u\,n\,\kappa_2(A)$           & $2.32\times10^{-2}$ & $4.24\times10^{-1}$ & $6.38\times10^{1}$ & $17.2$ \\
+$\Lambda_N^{\rm corr}$        & $4.26\times10^{-6}$ & $9.45\times10^{-3}$ & $4.97\times10^{-2}$ & $19.8$ \\
+\hline
+\end{tabular}
+\end{table}
+
+Under this metric $D_N$ is the tightest ex-post diagnostic, not
+$un/p^{\rm sc}_{\min}$. The role of the latter is different: it is local, inexpensive, and tied
+directly to the formation bound in the main paper. Its empirical inequality for
+$\eta_{\mathrm{inv}}$ holds in $99.0\%$ of the screened records, but the failure rate is
+class-dependent and reaches $20.5\%$ on Vandermonde matrices. The main paper therefore does not
+promote it to a theorem or call it a complete predictor.
+
+To quantify the relative association of local and growth diagnostics with the observed error we
+fit
+%
+\begin{equation}\label{eq:sm-regression}
+\begin{aligned}
+\log_{10}\eta_{\mathrm{inv}}=c_0
+&+c_1\log u+c_2\log n+c_3\log\frac{1}{p^{\rm sc}_{\min}}
++c_4\log\max_j\|\widehat V_j\| \\
+&+c_5\log\max_j\|\widehat{\mathcal B}_{j+1:N}\|
++c_6\log\kappa_2(\widehat V_{N+1}).
+\end{aligned}
+\end{equation}
+%
+The in-sample fit gives $R^2=0.925$, with $c_1=0.975$ and $c_3=0.940$. Nested fits give
+$R^2=0.342$ for $(u,n)$ alone and $0.890$ after adding $p^{\rm sc}_{\min}$; the three growth
+quantities together add $0.035$ in sample. These coefficients are descriptive, not structural.
+Only two values of $u$ occur, the fitted coefficient of $\log n$ is negative, and the regressors
+are strongly correlated.
+
+Most importantly, the model does not generalize uniformly across matrix classes. Under
+leave-one-family-out validation the out-of-sample $R^2$ is $0.969$ for Hilbert, $0.868$ for the
+prescribed-singular-value family, and $0.829$ for Vandermonde, but $0.057$ for the single-pivot
+orthogonal family, $-0.405$ for repeated bad pivots, and $-0.802$ for the scaled adversarial family.
+The reduced model in $(u,n,p^{\rm sc}_{\min})$ can fare worse still, reaching $R^2=0.036$ on the
+prescribed-singular-value family. Growth variables therefore contribute little to the in-sample
+increment after the pivot is known but are not dispensable as class-dependent information. The
+regression should be read as a map of the tested predictor space, not as a universal law.
+
+A historical analysis field named \texttt{rho\_inv} is deliberately not interpreted here as
+$\eta_{\mathrm{inv}}/(u\kappa_2(\widehat V_{N+1}))$. In the audit that field was formed with the
+conservative conditioning-screen denominator and is therefore only a conservative proxy for that
+ratio; no certified ordering relative to the exact ratio is claimed. The revised main paper consequently makes no claim that the explicit-inverse inequality
+$\eta_{\mathrm{inv}}\le r_R\kappa_2(\widehat V_{N+1})$ is observed to be close to equality.
+
+\section{The large-scale campaign: per-family results}
+\label{sm:large}
+
+The large-scale campaign covers fourteen matrix families and the thirteen dimensions
+$n\in\{8,11,16,23,32,45,64,91,128,181,256,362,512\}$ in both precisions and for the five
+variants of Table~1 of the main paper. After the wall-clock limit of the array job it
+contains $14\,686\,763$ complete matrices, $1.468\times10^{8}$ inverse records and
+$1.322\times10^{9}$ solution records, with a core of $20\,000$ realizations per cell complete for
+$n\le181$ and a balanced extension of exactly $2000$ realizations per stochastic cell in all
+thirteen dimensions. Cells of the balanced extension are the unit of every aggregate reported in
+the main paper.
+
+\paragraph{Breakdown}
+The overall breakdown rate is $327\,222/1.468\times10^{8}=0.2228\%$, distributed as $85.6\%$
+\texttt{no\_pivot}, $13.3\%$ nonfinite tableau, $0.94\%$ nonfinite $B_l$ and $0.18\%$ nonfinite
+binary32 input. It is concentrated by precision and by family rather than by method: in binary64
+every variant breaks down on fewer than $8\times10^{-6}$ of records, and $83.6\%$ of all
+breakdowns come from the prescribed-singular-value family at $\kappa_2\ge10^{8}$, where
+$\kappa_2u>1$ in binary32 and the problem is unresolved in the working precision. Vandermonde
+contributes $14.4\%$ and the diagonally dominant and scaled adversarial families essentially
+none. Breakdown rates should therefore be read together with the conditional residual, never
+separately; the Vandermonde comparison of the pivot-rule comparison of the main paper is the clearest instance.
+
+\paragraph{Ordering by family}
+The median across cells of $q_{95}(r_R/u)$ at $n=512$ is, in binary32 and binary64,
+$1.35$ and $1.48$ for \texttt{R1\_C1}, $1.48$ and $1.67$ for \texttt{R2\_C2}, $1.96$ and $2.10$
+for \texttt{R0\_C1}, $2.20$ and $2.47$ for \texttt{R0\_C2}, and $9.94$ and $15.35$ for
+\texttt{R0\_C0}. The pooled ordering, however, conceals a systematic dependence on the matrix
+class. On the prescribed-singular-value family row pivoting helps, \texttt{R1\_C1} beating
+\texttt{R0\_C1} on $70.7\%$ and $74.0\%$ of paired matrices in the two precisions. On
+\texttt{row\_diagonal\_dominant\_random} it hurts, \texttt{R0\_C1} winning on $85.3\%$ and
+$76.2\%$; on \texttt{row\_diagonal\_dominant\_stochastic} the figures are $88.9\%$ and $85.3\%$.
+On Vandermonde at $n=512$ in binary32 the breakdown rates are $65.6\%$, $0\%$, $0.1\%$, $72.7\%$
+and $84.6\%$ for the five variants in the order of Table~1, with conditional
+$q_{95}(r_R/u)$ equal to $1.52\times10^{5}$, $0.793$, $0.288$, $0.488$ and $0.296$; restricted
+to matrices on which both succeed, \texttt{R0\_C2} has the smaller residual than \texttt{R2\_C2}
+on $59\%$ of cases in binary32 and $58\%$ in binary64, with median ratio $0.77$.
+
+\paragraph{Effective slopes}
+Power-law fits $q_{95}(r_R/u)\sim Cn^{s}$ are computed per cell over the thirteen dimensions of
+the balanced extension, with $95\%$ intervals from $2000$ cluster-bootstrap replications that
+resample matrices within each $n$ and never resample the dimensions. Median interval widths are
+$0.011$--$0.014$ for the pivoted variants. Almost all intervals exclude zero, but not with a
+common sign: for \texttt{R0\_C1} in binary32, $54$ of $64$ cells have an interval entirely in
+$s>0$ and $10$ entirely in $s<0$, and the pattern is similar for the other variants, so the
+heterogeneity between cells is signal and not bootstrap noise. Comparing the power model with a
+quadratic in $\log n$ by AIC, the quadratic is preferred in $47$ to $60$ cells out of $64$
+depending on variant and precision, with $\Delta\mathrm{AIC}<-10$ in about three quarters of
+those; among the cells where it wins, the curvature is convex in the majority for all four
+pivoted variants. The fitted $s$ must therefore be reported as an effective slope over
+$8\le n\le512$.
+
+\paragraph{Sample size and wall-clock truncation}
+Comparing quantiles from all $20\,000$ realizations with those from the balanced $2000$ subset in
+the complete dimensions, the median relative difference is $0.57\%$ at $q_{50}$, $0.86\%$ at
+$q_{90}$, $1.06\%$ at $q_{95}$, and $1.95\%$ at $q_{99}$; excluding the scaled adversarial family,
+where relative differences near zero are not meaningful, the $95$th percentile of the difference
+at $q_{95}$ is $5.4\%$. This is a sample-size audit: it supports $2000$ realizations for estimating
+quantiles through $q_{95}$ on complete cells and cautions against $q_{99}$.
+
+It is not a missingness audit. The array wall-clock limit truncated the largest dimensions through
+the deterministic task/manifest assignment, so the recovered $2000$ records at $n>181$ are not
+asserted to be a random subsample of the designed $20\,000$. We therefore distinguish the complete
+core $n\le181$ from the balanced recovered extension through $n=512$. The latter is used for
+finite-range dimensional trends and explicitly paired comparisons, without treating the missingness as random and with no
+claim that a small complete-cell subsampling error proves absence of truncation bias.
+
+\section{The defect replay and masking decomposition}
+\label{sm:replay}
+
+The replay recomputes $\|D_N\|_2$, $\|R_N\|_2$, and $\|\Pi AE_{N+1}\|_2$ for the balanced sample
+of the two diagonally dominant ensembles: $520\,000$ matrices under \texttt{R0\_C0},
+\texttt{R0\_C1}, \texttt{R1\_C1}, and \texttt{R2\_C2} in both precisions, giving
+$4\,160\,000$ method/precision records and $1\,040\,000$ complete
+\texttt{R1\_C1}/\texttt{R0\_C1} pairs. The exactly applied tableau is accumulated in extended
+precision from the rounded elementary transformations. The matrix identity
+$R_N=D_N-\Pi AE_{N+1}$ passes the absolute long-double first-order acceptance gate implemented by
+the canonical replay code on every replayed record. This gate is operational rather than an
+interval certificate: it uses no directed rounding and is not invoked as a theorem assertion. The
+earlier auxiliary diagnostic normalized by $\|R_N\|$ is not an acceptance criterion because it
+produces false rejections in binary64 when $\|R_N\|$ is a cancellation residual near the roundoff
+floor; that relative diagnostic can reach approximately $1.46\times10^{-3}$. The scalar
+factorization identities below, which are different diagnostics, close to approximately
+$6\times10^{-16}$. The exact acceptance threshold and source hashes are fixed by the canonical
+replay script distributed with the computational archive.
+
+\paragraph{Control}
+On all $520$ blocks, \texttt{R0\_C0} and \texttt{R0\_C1} reproduce the same pivot path and yield
+$D_N$, $R_N$, and $\Pi AE_{N+1}$ equal bit for bit, with zero path mismatches. This is the numerical
+counterpart of the exact diagonal-dominance result in the main paper and a stringent internal
+control of the replay.
+
+\paragraph{Exact scalar factorization}
+The ratios below are defined only when their displayed denominators are positive.  The exact
+pairwise identities therefore apply on the common domain where all displayed factors are defined.
+A pair with a zero denominator is omitted from any ratio that requires it. On this natural domain,
+for each \texttt{R1\_C1}/\texttt{R0\_C1} pair define
+%
+\[
+d=\frac{\|D_1\|_2}{\|D_0\|_2},
+\qquad
+a=\frac{\|AE_1\|_2}{\|AE_0\|_2},
+\qquad
+H_i=(\|D_i\|_2^2+\|AE_i\|_2^2)^{1/2},
+\qquad
+q=\frac{Q_1}{Q_0},
+\]
+%
+where $Q_i=\|R_i\|_2/H_i$, and let
+%
+\[
+w=\frac{\|D_0\|_2^2}{\|D_0\|_2^2+\|AE_0\|_2^2}.
+\]
+%
+Then, with $h=H_1/H_0$ and $r=\|R_1\|_2/\|R_0\|_2$,
+%
+\[
+r=hq,
+\qquad
+h^2=wd^2+(1-w)a^2.
+\]
+%
+These are exact scalar identities built from spectral norms. In particular, $Q$ is not a matrix
+angle and $H$ is not the norm of an orthogonal decomposition.
+
+To isolate the baseline-weight effect from the actual change in the application term, introduce
+the counterfactual scale
+%
+\[
+h_{a=1}=\sqrt{wd^2+1-w},
+\qquad
+M_{\rm weight}=\frac{h_{a=1}}{d},
+\qquad
+M_{AE}=\frac{h}{h_{a=1}}.
+\]
+%
+Then every pair satisfies the exact multiplicative factorization
+%
+\begin{equation}\label{eq:sm-compensation}
+r=d\,M_{\rm weight}\,M_{AE}\,q.
+\end{equation}
+%
+At the pair level,~\eqref{eq:sm-compensation} is exact.  A product of geometric means is an exact
+group identity only when all factors are evaluated on the same common positive-domain subset.
+Accordingly, the four-factor products displayed below are used as descriptive summaries of the
+pairwise decomposition, not as an additional theorem; medians are never multiplied.
+
+The geometric-mean factors for B1 are
+%
+\[
+2.572\times0.474\times0.966\times0.927=1.092
+\quad\text{(binary32)},
+\]
+%
+and
+%
+\[
+2.489\times0.492\times0.966\times0.929=1.098
+\quad\text{(binary64)}.
+\]
+%
+For B2 they are
+%
+\[
+2.156\times0.658\times0.998\times0.982=1.391,
+\qquad
+2.127\times0.677\times0.999\times0.983=1.414.
+\]
+%
+Thus the dominant attenuation of the formation-defect amplification is the baseline-weight factor
+$M_{\rm weight}$; the application-term factor is essentially unity, and the $Q$ factor gives only a
+secondary reduction.
+
+\paragraph{Weight dependence and deciles}
+The median baseline weight $w$ is $0.086$ and $0.109$ on B1 in binary32 and binary64, and $0.367$
+and $0.414$ on B2. The correlation of $\log d$ with $\log w$ is $-0.77$ and $-0.83$ on B1 and
+$-0.50$ and $-0.52$ on B2: matrices whose formation defect is amplified most strongly tend to be
+those on which the defect carried less baseline quadratic weight. This is an association, not a
+causal coefficient.
+
+Deciles make the same point without relying on correlation. On B2 in binary64 at $n=512$, the
+lowest-$w$ decile has $w=0.0048$, $d=6.14$, and $r=0.96$, whereas the highest decile has
+$w=0.586$, the smaller $d=5.09$, and $r=3.97$. On B1 in binary64 at $n=512$, the corresponding
+values are $w=0.0047$, $d=6.39$, $r=0.93$ and $w=0.0255$, $d=6.40$, $r=1.36$. Across dimensions
+on B1, the defect ratio rises from $1.08$ at $n=8$ to $7.03$ at $n=512$ while the median baseline
+weight falls from $0.443$ to $0.013$. The final residual therefore masks most strongly the
+formation-defect deterioration in the large-$n$ regime where that deterioration is largest.
+
+\section{Mechanism of the solution backward-error reversal}
+\label{sm:reversal}
+
+Taken over all successful cases, the $99$th percentile of $\eta_{\rm sol}$
+ranks the first-nonzero variant \texttt{R0\_C0} as the best of the five,
+in contradiction to every diagnostic of the computed inverse; the reversal
+survives restriction to the configurations solved by all five variants, and
+disappears on restriction to the well resolved regime $\kappa_2(A)\,u<10^{-2}$
+(Table~\ref{tab:sm-etasol}). Two distinct mechanisms operate in the unresolved
+regime, and it is worth separating them because only the first is usually
+anticipated.
+
+\begin{table}
+\centering
+\caption{Solution backward error over configurations solved by all five
+variants, with zero refinement. Left: all such configurations. Right: those in
+the well resolved regime $\kappa_2(A)\,u<10^{-2}$; this solution-reliability
+criterion is distinct from the inverse-reliability screen of the main paper, which is based on the
+separately maintained inverse of the transformation product.}
+\label{tab:sm-etasol}
+\begin{tabular}{lrrrr}
+\hline
+& \multicolumn{2}{c}{all, $n=17\,283$} & \multicolumn{2}{c}{well resolved, $n=10\,045$} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Variant & median & $q_{99}$ & median & $q_{99}$ \\
+\hline
+\texttt{R0\_C0} & $2.80\times10^{-9}$ & $5.90\times10^{-2}$ & $1.84\times10^{-11}$ & $5.07\times10^{-4}$ \\
+\texttt{R0\_C1} & $1.23\times10^{-9}$ & $2.90\times10^{-1}$ & $4.91\times10^{-12}$ & $1.16\times10^{-4}$ \\
+\texttt{R0\_C2} & $1.20\times10^{-9}$ & $2.80\times10^{-1}$ & $4.99\times10^{-12}$ & $1.23\times10^{-4}$ \\
+\texttt{R1\_C1} & $1.24\times10^{-9}$ & $2.97\times10^{-1}$ & $4.97\times10^{-12}$ & $1.16\times10^{-4}$ \\
+\texttt{R2\_C2} & $1.21\times10^{-9}$ & $2.86\times10^{-1}$ & $4.89\times10^{-12}$ & $1.10\times10^{-4}$ \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{Denominator inflation}
+For records with $\eta_{\rm sol}>0$, the denominator of $\eta_{\rm sol}$ can be recovered without
+cancellation as $\|A\|_2\|\widehat x\|_2+\|b\|_2 =
+\|b-A\widehat x\|_2/\eta_{\rm sol}$, both quantities being recorded.  Zero-residual records
+are excluded from this ratio reconstruction. Comparing \texttt{R0\_C0} with \texttt{R1\_C1} over
+the $17\,679$ paired configurations, the median denominator ratio is $1.000$
+in the well resolved regime, with $q_{90}=1.10$. When the problem is resolved,
+the two variants produce solutions of essentially the same norm and
+$\eta_{\rm sol}$ compares like with like. In the unresolved regime the median
+ratio is $1.001$ but $q_{90}$ rises to $681$, and among the $3\,684$
+configurations in which \texttt{R0\_C0} attains the smaller $\eta_{\rm sol}$
+the median denominator ratio is $1.17$ with $70.1\%$ exceeding unity.
+Denominator inflation is therefore real, and it accounts for part of the
+reversal, since a less accurate inverse can return a smaller backward error simply by
+producing a larger $\|\widehat x\|$.
+
+\paragraph{Accidental cancellation in the residual}
+Inflation is not, however, the whole explanation. In the extreme tail, the
+$177$ paired configurations in the top percentile of $\eta_{\rm sol}$ for
+\texttt{R1\_C1}, the median denominator ratio is $0.83$, and only $44\%$ of
+cases have an inflated denominator. What distinguishes these cases is the
+residual itself, which is a median factor $26$ smaller for \texttt{R0\_C0}.
+Both computed solutions are meaningless there, the forward errors having medians
+$2.50$ and $3.02$, and in $65.5\%$ of the cases both exceed unity, so neither
+solution has a single correct digit. In that situation the residual is governed
+by accidental cancellation rather than by the quality of the inverse, and a
+smaller residual carries no information about the method. That \texttt{R0\_C0}
+produces the worse inverse in $94.9\%$ of these same cases, with median ratio of
+scaled inverse residuals $9.2$, makes the point directly.
+
+\paragraph{Characterization of the unresolved regime}
+Of the cases with $\eta_{\rm sol}>10^{-3}$, ninety percent are binary32, the
+median condition number is $2.3\times10^{8}$ so that $\kappa_2(A)\,u>1$, and
+the median forward error is $1.27$. On the well resolved subset
+$\kappa_2(A)\,u<10^{-2}$, \texttt{R0\_C0} is the worst variant at both the
+median and the $99$th percentile of $\eta_{\rm sol}$, by factors of $3.8$ and
+$4.4$ respectively; its forward error is a median factor $17.8$ larger, and it
+produces the more accurate solution in only $5.7\%$ of paired comparisons.
+All cross-method comparisons of $\eta_{\rm sol}$ in the main paper are
+therefore restricted to $\kappa_2(A)\,u<10^{-2}$, a threshold fixed before the
+campaign was run.
+
+\section{The adversarial families}
+\label{sm:adversarial}
+
+The adversarial proposition of the main paper proves the behavior of the pivot rules on the exactly conditioned
+orthogonal family. Table~\ref{tab:sm-adversarial} records the floating-point confirmation over
+eight decades of $\varepsilon$: the tableau growth of \texttt{R0\_C0} agrees with
+$\sqrt{1+c}/\varepsilon$ to all displayed digits, while the no-row-pivoting magnitude rules agree with the
+exact value $(1-\varepsilon)^{-1/2}$ and hence tend to one as $\varepsilon\to0$.  The underlying
+real-valued matrices are exactly orthogonal; their binary64 representations satisfy
+$\kappa_2(A)=1+O(u)$.
+
+\begin{table}
+\centering
+\caption{Orthogonal family of the adversarial proposition of the main paper, binary64, $n=8$. Medians over the
+recorded cases.  The underlying real-valued matrices have $\kappa_2(A)=1$ exactly; their binary64
+representations have $\kappa_2(A)=1+O(u)$. The tableau growth of \texttt{R0\_C0}
+agrees with $\sqrt{1+c}/\varepsilon=(\sqrt2/\varepsilon)(1+O(\varepsilon^2))$, while the displayed
+\texttt{R0\_C2} growth agrees with $(1-\varepsilon)^{-1/2}$ (for example $1.054\ldots$ at
+$\varepsilon=10^{-1}$ and $1.005\ldots$ at $10^{-2}$).}
+\label{tab:sm-adversarial}
+\begin{tabular}{lrrrr}
+\hline
+& \multicolumn{2}{c}{\texttt{R0\_C0}} & \multicolumn{2}{c}{\texttt{R0\_C2}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+$\varepsilon$ & $\max_j\|\widehat V_j\|_2$ & $r_R$ & $\max_j\|\widehat V_j\|_2$ & $r_R$ \\
+\hline
+$10^{-1}$  & $1.41\times10^{1}$  & $3.61\times10^{-16}$ & $1.05$ & $0$ \\
+$10^{-2}$  & $1.41\times10^{2}$  & $5.12\times10^{-15}$ & $1.01$ & $2.22\times10^{-16}$ \\
+$10^{-4}$  & $1.41\times10^{4}$  & $7.07\times10^{-13}$ & $1.00$ & $3.49\times10^{-21}$ \\
+$10^{-6}$  & $1.41\times10^{6}$  & $7.61\times10^{-12}$ & $1.00$ & $1.11\times10^{-16}$ \\
+$10^{-8}$  & $1.41\times10^{8}$  & $4.90\times10^{-9}$  & $1.00$ & $2.22\times10^{-16}$ \\
+$10^{-10}$ & $1.41\times10^{10}$ & $1.00\times10^{-10}$ & $1.00$ & $0$ \\
+$10^{-12}$ & $1.41\times10^{12}$ & $1.00\times10^{-12}$ & $1.00$ & $0$ \\
+$10^{-14}$ & $1.41\times10^{14}$ & $1.00\times10^{-14}$ & $1.00$ & $0$ \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+The orthogonal family of the adversarial proposition of the main paper isolates a single bad
+pivot per $2\times2$ block at a common parameter $\varepsilon$. A variant with
+geometrically decaying block parameters $\varepsilon_k=\varepsilon\,\delta^{k}$
+reproduces the effect with repeated rather than isolated bad pivots, so that
+the first-nonzero rule encounters a progressively worsening pivot in every
+block while the matrix remains exactly orthogonal, $\kappa_2(A)=1$. On this
+family the median tableau growth is $1.41\times10^{10}$ and the median scaled
+defect $\|D_N\|_2/\|A\|_2$ is $1.01\times10^{-8}$ for \texttt{R0\_C0}, against
+growth $1.00$ to displayed precision and defect $1.11\times10^{-16}$ for the remaining variants.
+The repeated-bad-pivot construction confirms, with a different pivot geometry, the exact structural
+conclusion of the single-parameter family: tableau growth cannot be bounded by $\kappa_2(A)$
+alone because the matrices remain orthogonal while the first-nonzero pivots deteriorate. The large
+observed inverse backward errors are a separate finite-precision statement. They force any modest
+$O(u)$ backward-error constant at $\kappa_2(A)=1$ to be very large over the tested regime, but a
+finite experiment does not prove the nonexistence of every possible condition-number-only
+function. The empirical inequality
+$\eta_{\mathrm{inv}}\le un/p^{\rm sc}_{\min}$ holds without exception on this family
+(Table~\ref{tab:sm-law-by-family}).
+
+\section{High-precision validation of the residual decomposition}
+\label{sm:validation}
+
+The decomposition $R_N=D_N-AE_{N+1}$ and the row-wise reconstruction of $D_N$ in the
+main paper are algebraic consequences of the definitions and the recorded transformation factors. They are, however, statements about the algorithm as implemented,
+involving the row and column permutations actually applied and the elementary
+transformations actually formed, so an independent check that the instrumented
+implementation realizes them is a check on the instrumentation and on the
+modelling, not on the identities.
+
+The validation bank comprised the $91\,466$ successful unrefined inverse records
+of the campaign, that is, the same population from which the reliability
+accounting of section~\ref{sm:reliability} is drawn. For each record an
+independent verifier reproduced the working-precision pivot path (the row
+order, the pivot columns, and the computed multipliers) and then evaluated,
+in variable-precision arithmetic, the directly formed residual
+$I-\Pi A\widehat V_{N+1}$, the defect $I-\Pi A\widetilde V_{N+1}$ obtained from
+the exactly applied product of the computed transformations, the accumulated
+application error $E_{N+1}$, and the row-wise reconstruction of $D_N$ from the
+propagated local defects.
+
+The tolerance requires care. The intermediate quantities include trailing
+products $\widehat{\mathcal B}_{j:N}$ whose norms reach $10^{16}$ and beyond on
+the Hilbert, Kahan, and Vandermonde families, so a check performed at fixed
+precision, or against a fixed absolute tolerance, measures the arithmetic of the
+verifier rather than the consistency of the implementation; an earlier pass in
+extended-precision floating point failed for exactly this reason on those three
+families, while passing to $10^{-19}$ on the families with bounded tableaux.
+The reported pass therefore uses a tolerance scaled by the observed
+trailing-product growth, with the working precision of the verifier set
+accordingly.
+
+Both checks passed on all $91\,219$ records for which the pivot path was
+reproduced, and no algebraic discrepancy was observed. The remaining $247$
+records, $0.27\%$ of the bank, were not validated: the verifier did not
+reproduce the original pivot sequence, typically through a missing final pivot
+in cases where the tableau is already ill-resolved in the working precision and
+the selection is decided by quantities at the level of the rounding error. These
+records are excluded from the validation statement and from no other analysis in
+the paper.
+
+\section{Reproducibility archive and retained bulk outputs}
+\label{sec:reproducibility_archive}
+
+The software, computational configurations, Slurm scripts, canonical campaign
+manifest, compact numerical reports, provenance information, and manuscript
+sources are available from
+\url{https://github.com/FrancisRVillatoro/backward-error-purcell-egervary-castillo-matrix-inverse}.
+The corresponding reproducibility dataset is archived on Zenodo at
+\href{https://doi.org/10.5281/zenodo.21794454}
+{doi:10.5281/zenodo.21794454}.
+
+The public archive contains all $999$ recovered-task status records, an
+independent certificate of the exact recovered population, compact analysis
+data, the complete defect-replay record, final reports,
+software-environment information, and SHA-256 provenance manifests. The
+certified recovered population comprises $14{,}686{,}763$ matrices,
+$146{,}867{,}630$ inverse records, and $1{,}321{,}808{,}670$ solution
+records.
+
+For each task, the recovery procedure processes the inverse and solution
+streams in their deterministic generation order, retains only complete paired
+matrix groups, and stops at the first incomplete or inconsistent group.
+Consequently, each recovered task is a deterministic prefix of its original
+task stream. The archived task-status records and the independent prefix
+certificate reconstruct and verify all $999$ prefixes from the canonical
+manifest, task partition, seed namespace, and matrix-identifier rule.
+
+The complete recovered inverse and solution collection contains $999$ inverse
+and $999$ solution gzip CSV shards, amounting to $1{,}998$ files and
+$136{,}127{,}339{,}793$ bytes. These bulk outputs are retained by the author
+for additional analyses and reviewer-requested calculations but are not
+included in the public version~1.0.0 archive. Their filenames, exact byte
+sizes, and SHA-256 digests are nevertheless included in the public archive.
+Thus, the canonical manifest, deterministic generation rules, task-status
+records, prefix certificate, and bulk-file manifests uniquely identify the
+population analyzed in this work without requiring public distribution of all
+bulk CSV outputs.
+
+\bibliographystyle{siamplain}
+\bibliography{castillo_refs}
+
+\end{document}
