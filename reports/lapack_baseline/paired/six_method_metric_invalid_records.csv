@@ -1,0 +1,7 @@
+block_index,cell_id,family,n,rank,dtype_name,bad_methods
+1357,scaled_adversarial:bfa61de27cbbe219,scaled_adversarial,256,831,float64,R2_C2
+1358,scaled_adversarial:e73afbc25af72981,scaled_adversarial,256,40,float64,R2_C2
+1358,scaled_adversarial:e73afbc25af72981,scaled_adversarial,256,404,float64,R2_C2
+1358,scaled_adversarial:e73afbc25af72981,scaled_adversarial,256,597,float64,R2_C2
+1358,scaled_adversarial:e73afbc25af72981,scaled_adversarial,256,859,float64,R2_C2
+1358,scaled_adversarial:e73afbc25af72981,scaled_adversarial,256,1831,float64,R2_C2

@@ -1,0 +1,25 @@
+{
+  "binary64_mask_identity": true,
+  "binary64_table_identity": true,
+  "blocks": 832,
+  "common5": {
+    "float32": 1635974,
+    "float64": 1663999
+  },
+  "common6": {
+    "float32": 1629883,
+    "float64": 1663999
+  },
+  "outputs": [
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/six_method_failure_overlap.csv",
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/six_method_block_quantiles.csv",
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/six_method_table2_style.csv",
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/six_method_vs_lapack_by_block.csv",
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/six_method_vs_lapack_summary.csv"
+  ],
+  "reconstruction_gate": true,
+  "sample_size": 2000,
+  "selected_matrices": 1664000,
+  "status": "SIX_METHOD_PAIRED_AUDIT_COMPLETE",
+  "task_status_gate": true
+}

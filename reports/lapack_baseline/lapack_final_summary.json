@@ -1,0 +1,37 @@
+{
+  "aggregation_gate": true,
+  "data_files": 999,
+  "distinct_matrix_precision_records": 3328000,
+  "duplicate_records": 0,
+  "expected_blocks_per_precision": 832,
+  "expected_records": 3328000,
+  "outputs": [
+    "lapack_precision_summary.csv",
+    "lapack_failure_by_family.csv",
+    "lapack_by_dimension.csv",
+    "lapack_block_quantiles.csv",
+    "lapack_table2_style.csv",
+    "lapack_left_right_asymmetry.csv"
+  ],
+  "precision": {
+    "float32": {
+      "attempts": 1664000,
+      "failure_classes": {
+        "singular_getrf": 8723
+      },
+      "failure_rate": 0.0052421875,
+      "failures": 8723,
+      "successes": 1655277
+    },
+    "float64": {
+      "attempts": 1664000,
+      "failure_classes": {},
+      "failure_rate": 0.0,
+      "failures": 0,
+      "successes": 1664000
+    }
+  },
+  "records": 3328000,
+  "status": "LAPACK_BASELINE_FINALIZED",
+  "tasks": 999
+}
