@@ -1,7 +1,6 @@
-# Backward Error of the Purcell–Egerváry–Castillo Matrix Inverse
+# Growth, Pivoting, and Backward Error in the Purcell–Egerváry–Castillo Matrix Inverse
 
-Reproducibility repository for the manuscript **“Backward Error of the
-Matrix Inverse in the Purcell–Egerváry–Castillo Pivoting Transformation”**
+Reproducibility repository for the manuscript **“Growth, Pivoting, and Backward Error in the Purcell–Egerváry–Castillo Matrix Inverse”**
 by Francisco R. Villatoro.
 
 Repository:
@@ -26,7 +25,10 @@ The repository contains:
 - manuscript and supplementary LaTeX sources;
 - provenance and SHA-256 manifests.
 
-Version 1.0.0 corresponds to the computational record used in the manuscript.
+Version 1.0.0 preserves the original archival computational record.
+Version 1.1.0 adds the LAPACK `xGETRF+xGETRI` explicit-inverse baseline,
+the exact deterministic balanced-sample reconstruction, the strict
+six-method paired comparison, and the associated metric-validity audit.
 
 ## Computational record
 
@@ -38,6 +40,22 @@ The reported numerical experiments include:
 - 1,321,808,670 solution records;
 - targeted diagonal-dominance, defect-replay, compensation, quadrature,
   and high-precision validation audits.
+
+## LAPACK explicit-inverse baseline — version 1.1.0
+
+The revised numerical comparison adds a production explicit-inverse baseline
+using LAPACK `SGETRF+SGETRI` in binary32 and `DGETRF+DGETRI` in binary64.
+
+The baseline evaluates exactly 1,664,000 balanced matrices per precision.
+LAPACK completes all binary64 cases. In binary32, `SGETRF` reports an exactly
+zero factorization pivot in 8,723 cases (0.52421875%); 99.31% of those events
+belong to the `random_conditioned` family.
+
+The strict common-success, common-finite-metric comparison of the five Castillo
+variants and LAPACK contains 1,629,883 binary32 matrices and 1,663,993
+binary64 matrices.
+
+See `docs/LAPACK_BASELINE.md` and `reports/lapack_baseline/`.
 
 ## Public reproducibility dataset
 

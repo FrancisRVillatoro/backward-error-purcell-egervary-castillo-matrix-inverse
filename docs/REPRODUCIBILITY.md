@@ -198,3 +198,19 @@ The public dataset includes its own internal content manifest and the hash and
 size inventories of the retained bulk collection.
 
 Verify all supplied checksums before analyzing or redistributing the release.
+
+
+## Version 1.1.0 LAPACK baseline
+
+Version 1.1.0 adds a SciPy/LAPACK `xGETRF+xGETRI` explicit-inverse baseline
+on the exact deterministic balanced sample used by the large-scale Castillo
+analysis.
+
+The frozen execution programs are under `code/lapack_baseline/`, the Picasso
+launchers under `slurm/lapack_baseline/`, and compact outputs under
+`reports/lapack_baseline/`.
+
+The final comparative statistics use a strict common-success and common
+finite-metric sample across all six explicit-inverse methods. See
+`docs/LAPACK_BASELINE.md` for sample sizes, environment versions, failure
+accounting, and final quantiles.

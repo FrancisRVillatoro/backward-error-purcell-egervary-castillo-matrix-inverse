@@ -5,9 +5,9 @@
       "affiliation": "Universidad de Málaga"
     }
   ],
-  "title": "Backward Error of the Purcell–Egerváry–Castillo Matrix Inverse",
-  "description": "Frozen software and reproducibility materials for the numerical experiments accompanying the manuscript 'Backward Error of the Matrix Inverse in the Purcell–Egerváry–Castillo Pivoting Transformation'. The repository contains deterministic campaign generation, the Purcell–Egerváry–Castillo pivoting variants, recovery and population certification, diagonal-dominance audits, defect replay, high-precision validation, canonical post-processing, compact final reports, and manuscript sources. A separate Zenodo dataset record preserves the public reproducibility asset.",
-  "version": "1.0.0",
+  "title": "Growth, Pivoting, and Backward Error in the Purcell–Egerváry–Castillo Matrix Inverse",
+  "description": "Frozen software and reproducibility materials for the numerical experiments accompanying the manuscript 'Growth, Pivoting, and Backward Error in the Purcell–Egerváry–Castillo Matrix Inverse'. Version 1.1.0 adds an explicit LAPACK xGETRF+xGETRI production baseline, deterministic balanced-sample reconstruction, a strict six-method paired residual comparison, and metric-validity accounting, while preserving the original campaign, diagonal-dominance, defect-replay, and high-precision validation material. The linked Zenodo dataset record preserves the original public reproducibility dataset.",
+  "version": "1.1.0",
   "access_right": "open",
   "keywords": [
     "numerical linear algebra",
@@ -18,7 +18,8 @@
     "Purcell method",
     "Egervary rank reduction",
     "Castillo transformation",
-    "reproducible research"
+    "reproducible research",
+    "LAPACK"
   ],
   "license": "mit",
   "upload_type": "software",

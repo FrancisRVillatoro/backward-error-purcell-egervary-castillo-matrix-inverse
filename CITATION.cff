@@ -1,8 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite the software release, the reproducibility dataset, and the associated manuscript."
-title: "Backward Error of the Purcell–Egerváry–Castillo Matrix Inverse"
+title: "Growth, Pivoting, and Backward Error in the Purcell–Egerváry–Castillo Matrix Inverse"
 type: software
-version: 1.0.0
+version: 1.1.0
+date-released: 2026-09-03
 license: MIT
 authors:
   - given-names: Francisco R.
@@ -12,11 +13,11 @@ repository-code: "https://github.com/FrancisRVillatoro/backward-error-purcell-eg
 url: "https://github.com/FrancisRVillatoro/backward-error-purcell-egervary-castillo-matrix-inverse"
 abstract: >-
   Frozen software and reproducibility materials for the numerical experiments
-  accompanying the manuscript “Backward Error of the Matrix Inverse in the
-  Purcell–Egerváry–Castillo Pivoting Transformation”. The release includes
-  implementations of the pivoting variants, deterministic campaign generation,
-  recovery and population certification, diagonal-dominance audits, defect
-  replay, high-precision validation, and canonical post-processing.
+  accompanying the manuscript “Growth, Pivoting, and Backward Error in the Purcell–Egerváry–Castillo Matrix Inverse”. Version 1.1.0 adds an explicit
+  LAPACK xGETRF+xGETRI production baseline, deterministic balanced-sample
+  reconstruction, a strict six-method paired residual comparison, and
+  metric-validity accounting, while preserving the original campaign,
+  diagonal-dominance, defect-replay, and high-precision validation material.
 keywords:
   - numerical linear algebra
   - matrix inversion
@@ -26,4 +27,5 @@ keywords:
   - Purcell method
   - Egerváry rank reduction
   - Castillo transformation
+  - LAPACK
   - reproducible research
