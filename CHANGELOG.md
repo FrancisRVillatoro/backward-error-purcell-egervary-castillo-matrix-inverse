@@ -1,8 +1,7 @@
 # Changelog
 
-## 2.0.0
+## 1.0.0
 
-Clean reproducibility-only repository initialization.
+Initial clean reproducibility-only release.
 
-Contains data, code, scripts, configurations, numerical reports, and validation
-material required for computational reproducibility.
+Contains data, code, scripts, configurations, numerical reports, and validation material required for computational reproducibility.

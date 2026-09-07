@@ -6,9 +6,17 @@ Reproducibility data and code associated with the paper
 
 Francisco R. Villatoro
 
-This repository contains computational reproducibility material only:
-source code, scripts, configurations, numerical reports, validation material,
-and data required to reproduce the reported computations.
+This repository contains computational reproducibility material only: source code, scripts, configurations, numerical reports, validation material, and data required to reproduce the reported computations.
+
+No manuscript, supplementary manuscript, LaTeX source, bibliography, journal-submission material, or paper PDF is included in this repository.
+
+## Reproducibility archive
+
+Version: **1.0.0**
+
+Reserved Zenodo DOI (registered when the Zenodo record is published):
+
+    10.5281/zenodo.22648665
 
 ## Repository layout
 
