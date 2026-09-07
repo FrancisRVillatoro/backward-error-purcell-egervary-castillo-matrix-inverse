@@ -1,0 +1,11 @@
+dtype_name,method,successes,invalid_rR2,invalid_rR2_fraction,invalid_rRinf,invalid_rRinf_fraction
+float32,R0_C0,14653752,0,0.0,0,0.0
+float32,R0_C1,14634372,0,0.0,0,0.0
+float32,R0_C2,14633888,0,0.0,0,0.0
+float32,R1_C1,14602365,0,0.0,0,0.0
+float32,R2_C2,14582727,0,0.0,0,0.0
+float64,R0_C0,14686672,0,0.0,0,0.0
+float64,R0_C1,14686650,0,0.0,0,0.0
+float64,R0_C2,14686652,0,0.0,0,0.0
+float64,R1_C1,14686659,0,0.0,0,0.0
+float64,R2_C2,14686671,40,2.7235579798852987e-06,36,2.4512021818967687e-06

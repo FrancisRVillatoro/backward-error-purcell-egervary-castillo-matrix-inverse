@@ -1,0 +1,13 @@
+dtype_name,family,attempts,successes,failures,failure_rate,singular_getrf
+float32,random_conditioned,572000,563337,8663,0.015145104895104896,8663
+float32,row_diagonal_dominant_random,260000,260000,0,0.0,0
+float32,row_diagonal_dominant_stochastic,260000,260000,0,0.0,0
+float32,scaled_adversarial,312000,312000,0,0.0,0
+float32,spd_prescribed_spectrum,208000,207950,50,0.0002403846153846154,50
+float32,vandermonde,52000,51990,10,0.0001923076923076923,10
+float64,random_conditioned,572000,572000,0,0.0,0
+float64,row_diagonal_dominant_random,260000,260000,0,0.0,0
+float64,row_diagonal_dominant_stochastic,260000,260000,0,0.0,0
+float64,scaled_adversarial,312000,312000,0,0.0,0
+float64,spd_prescribed_spectrum,208000,208000,0,0.0,0
+float64,vandermonde,52000,52000,0,0.0,0

@@ -1,0 +1,24 @@
+{
+  "validation_purpose": "Compare the frozen six-power-iteration diagnostic with direct SVD spectral norms on a stratified balanced-sample audit.",
+  "picasso_slurm_job_id": 2207042,
+  "array_tasks": 48,
+  "array_task_states": "48/48 COMPLETED, ExitCode 0:0",
+  "matrix_cases": 48,
+  "precisions": [
+    "float32",
+    "float64"
+  ],
+  "methods": [
+    "R0_C0",
+    "R0_C1",
+    "R0_C2",
+    "R1_C1",
+    "R2_C2",
+    "LAPACK_xGETRF_xGETRI"
+  ],
+  "attempted_method_precision_evaluations": 576,
+  "finite_positive_residual_ratios": 573,
+  "metric": "Q_R = rhat_R,2^(6) / r_R,2^exact",
+  "scientific_threshold_gate": null,
+  "interpretation": "No a priori PASS threshold. Medians are near one, but individual tails are too broad to identify nu_6 with an exact spectral norm."
+}

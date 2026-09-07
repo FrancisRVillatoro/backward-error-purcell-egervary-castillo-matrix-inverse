@@ -1,0 +1,3 @@
+dtype_name,lapack_failures_total,lapack_failures_inside_common5,lapack_failures_outside_common5,common5_count,common6_count,S6_retention_of_S5
+float32,8723,6091,2632,1635974,1629883,0.9962768356954328
+float64,0,0,0,1663999,1663999,1.0

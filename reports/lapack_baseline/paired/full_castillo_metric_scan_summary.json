@@ -1,0 +1,55 @@
+{
+  "failure_total": 327222,
+  "gate": true,
+  "gates": {
+    "files": true,
+    "invalid_accounting": true,
+    "rows": true,
+    "success_states": true
+  },
+  "invalid_rR2_by_cell": {
+    "random_conditioned:ede4f08ad80ec7c0": 5,
+    "scaled_adversarial:17741976c2dfbd54": 4,
+    "scaled_adversarial:1c7b58eee2ed258c": 1,
+    "scaled_adversarial:bfa61de27cbbe219": 9,
+    "scaled_adversarial:e73afbc25af72981": 21
+  },
+  "invalid_rR2_by_dimension": {
+    "float64|n=256": 35,
+    "float64|n=724": 5
+  },
+  "invalid_rR2_by_dtype_method": {
+    "float64|R2_C2": 40
+  },
+  "invalid_rR2_by_family": {
+    "random_conditioned": 5,
+    "scaled_adversarial": 35
+  },
+  "invalid_rRinf_by_dtype_method": {
+    "float64|R2_C2": 36
+  },
+  "outputs": [
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/full_castillo_metric_validity_by_method.csv",
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/full_castillo_success_metric_anomalies.csv"
+  ],
+  "rR2_states": {
+    "blank": 39,
+    "ok": 146540368,
+    "parse_error": 1
+  },
+  "rRinf_states": {
+    "blank": 36,
+    "ok": 146540372
+  },
+  "rows_total": 146867630,
+  "source_json_files": 999,
+  "states": {
+    "TASK_OK": 999
+  },
+  "success_total": 146540408,
+  "successful_either_metric_invalid": 40,
+  "successful_rR2_invalid": 40,
+  "successful_rR2_invalid_fraction": 2.7296225352395637e-07,
+  "successful_rRinf_invalid": 36,
+  "successful_rRinf_invalid_fraction": 2.456660281715607e-07
+}

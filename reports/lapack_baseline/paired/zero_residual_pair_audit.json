@@ -1,0 +1,149 @@
+{
+  "gate": false,
+  "results": {
+    "float32": {
+      "R0_C0": {
+        "S6_count": 1629883,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1629883,
+        "fraction_method_le_lapack_all_finite": 0.24002090947632437,
+        "fraction_method_lt_lapack_all_finite": 0.23893248779206852,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": 0.5491792316115963,
+        "method_eq_lapack": 1774,
+        "method_gt_lapack": 1238677,
+        "method_lt_lapack": 389432,
+        "method_zero": 0,
+        "positive_positive_pairs": 1629883
+      },
+      "R0_C1": {
+        "S6_count": 1629883,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1629883,
+        "fraction_method_le_lapack_all_finite": 0.5791477056942124,
+        "fraction_method_lt_lapack_all_finite": 0.5729834595489369,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": -0.036689119215821395,
+        "method_eq_lapack": 10047,
+        "method_gt_lapack": 685940,
+        "method_lt_lapack": 933896,
+        "method_zero": 0,
+        "positive_positive_pairs": 1629883
+      },
+      "R0_C2": {
+        "S6_count": 1629883,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1629883,
+        "fraction_method_le_lapack_all_finite": 0.5546858271421936,
+        "fraction_method_lt_lapack_all_finite": 0.5485215809969182,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": -0.016079614267887996,
+        "method_eq_lapack": 10047,
+        "method_gt_lapack": 725810,
+        "method_lt_lapack": 894026,
+        "method_zero": 0,
+        "positive_positive_pairs": 1629883
+      },
+      "R1_C1": {
+        "S6_count": 1629883,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1629883,
+        "fraction_method_le_lapack_all_finite": 0.5923817844593753,
+        "fraction_method_lt_lapack_all_finite": 0.577721222934407,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": -0.04996984217233396,
+        "method_eq_lapack": 23895,
+        "method_gt_lapack": 664370,
+        "method_lt_lapack": 941618,
+        "method_zero": 0,
+        "positive_positive_pairs": 1629883
+      },
+      "R2_C2": {
+        "S6_count": 1629883,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1629883,
+        "fraction_method_le_lapack_all_finite": 0.5739142012033993,
+        "fraction_method_lt_lapack_all_finite": 0.5636251191036412,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": -0.039891707483032765,
+        "method_eq_lapack": 16770,
+        "method_gt_lapack": 694470,
+        "method_lt_lapack": 918643,
+        "method_zero": 0,
+        "positive_positive_pairs": 1629883
+      }
+    },
+    "float64": {
+      "R0_C0": {
+        "S6_count": 1663999,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1663999,
+        "fraction_method_le_lapack_all_finite": 0.26949956099733235,
+        "fraction_method_lt_lapack_all_finite": 0.26936013783662127,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": 0.4053919295809681,
+        "method_eq_lapack": 232,
+        "method_gt_lapack": 1215552,
+        "method_lt_lapack": 448215,
+        "method_zero": 0,
+        "positive_positive_pairs": 1663999
+      },
+      "R0_C1": {
+        "S6_count": 1663999,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1663999,
+        "fraction_method_le_lapack_all_finite": 0.6157732065944751,
+        "fraction_method_lt_lapack_all_finite": 0.6129931568468491,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": -0.05501046054065517,
+        "method_eq_lapack": 4626,
+        "method_gt_lapack": 639353,
+        "method_lt_lapack": 1020020,
+        "method_zero": 268,
+        "positive_positive_pairs": 1663731
+      },
+      "R0_C2": {
+        "S6_count": 1663999,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1663999,
+        "fraction_method_le_lapack_all_finite": 0.5885712671702327,
+        "fraction_method_lt_lapack_all_finite": 0.5857912174226066,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": -0.03967142727651658,
+        "method_eq_lapack": 4626,
+        "method_gt_lapack": 684617,
+        "method_lt_lapack": 974756,
+        "method_zero": 268,
+        "positive_positive_pairs": 1663731
+      },
+      "R1_C1": {
+        "S6_count": 1663999,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1663999,
+        "fraction_method_le_lapack_all_finite": 0.6236584276793435,
+        "fraction_method_lt_lapack_all_finite": 0.6210310222542201,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": -0.09417477386712032,
+        "method_eq_lapack": 4372,
+        "method_gt_lapack": 626232,
+        "method_lt_lapack": 1033395,
+        "method_zero": 331,
+        "positive_positive_pairs": 1663668
+      },
+      "R2_C2": {
+        "S6_count": 1663999,
+        "both_zero": 0,
+        "finite_nonnegative_pairs": 1663993,
+        "fraction_method_le_lapack_all_finite": 0.6037861938121134,
+        "fraction_method_lt_lapack_all_finite": 0.6014760879402737,
+        "lapack_zero": 0,
+        "median_log10_method_over_lapack_positive_pairs": -0.07467908080991914,
+        "method_eq_lapack": 3844,
+        "method_gt_lapack": 659297,
+        "method_lt_lapack": 1000852,
+        "method_zero": 333,
+        "positive_positive_pairs": 1663660
+      }
+    }
+  }
+}

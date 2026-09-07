@@ -1,0 +1,290 @@
+{
+  "campaign": "canonical",
+  "seed_namespace": "castillo-canonical-20260728",
+  "dimensions": [
+    8,
+    11,
+    16,
+    23,
+    32,
+    45,
+    64,
+    91,
+    128,
+    181,
+    256,
+    362,
+    512,
+    724,
+    1024
+  ],
+  "methods": [
+    "R0_C0",
+    "R0_C1",
+    "R0_C2",
+    "R1_C1",
+    "R2_C2"
+  ],
+  "dtypes": [
+    "float32",
+    "float64"
+  ],
+  "unit_roundoff": {
+    "float32": 5.960464477539063e-08,
+    "float64": 1.1102230246251565e-16
+  },
+  "stochastic_replicates": 20000,
+  "solution": {
+    "rhs_types": [
+      "random",
+      "alternating",
+      "right_singular_min"
+    ],
+    "refinement_steps": [
+      0,
+      1,
+      2
+    ],
+    "residual_dtype": "longdouble"
+  },
+  "expected_family_count": 14,
+  "expected_stochastic_cells": 64,
+  "expected_deterministic_cells": 65,
+  "families": [
+    {
+      "name": "random_conditioned",
+      "stochastic": true,
+      "grid": {
+        "condition_number": [
+          100.0,
+          10000.0,
+          1000000.0,
+          100000000.0,
+          10000000000.0,
+          1000000000000.0,
+          100000000000000.0
+        ],
+        "profile": [
+          "geometric",
+          "one_small",
+          "clustered"
+        ]
+      },
+      "cells": [
+        {
+          "condition_number": 1.0,
+          "profile": "orthogonal"
+        }
+      ]
+    },
+    {
+      "name": "hilbert",
+      "stochastic": false,
+      "cells": [
+        {}
+      ]
+    },
+    {
+      "name": "vandermonde",
+      "stochastic": false,
+      "grid": {
+        "node_type": [
+          "equispaced",
+          "chebyshev",
+          "clustered_zero",
+          "near_one",
+          "random"
+        ],
+        "cluster_parameter": [
+          10.0
+        ],
+        "column_scaling": [
+          false,
+          true
+        ]
+      },
+      "stochastic_when": {
+        "node_type": [
+          "random"
+        ]
+      }
+    },
+    {
+      "name": "kahan_type",
+      "stochastic": false,
+      "grid": {
+        "theta": [
+          0.1,
+          0.01,
+          0.001,
+          0.0001,
+          0.000001,
+          1e-08,
+          1e-10,
+          1e-12
+        ],
+        "column_scaling": [
+          false,
+          true
+        ]
+      }
+    },
+    {
+      "name": "adversarial_rotation",
+      "stochastic": false,
+      "grid": {
+        "epsilon": [
+          0.1,
+          0.01,
+          0.0001,
+          1e-06,
+          1e-08,
+          1e-10,
+          1e-12,
+          1e-14
+        ]
+      }
+    },
+    {
+      "name": "repeated_bad_pivots",
+      "stochastic": false,
+      "grid": {
+        "epsilon": [
+          0.01,
+          1e-06,
+          1e-10
+        ],
+        "decay": [
+          1.0,
+          0.3,
+          0.1
+        ]
+      }
+    },
+    {
+      "name": "scaled_adversarial",
+      "stochastic": true,
+      "grid": {
+        "epsilon": [
+          0.01,
+          1e-06,
+          1e-10
+        ],
+        "scale_range": [
+          2.0,
+          4.0,
+          8.0,
+          12.0
+        ]
+      }
+    },
+    {
+      "name": "row_diagonal_dominant_random",
+      "stochastic": true,
+      "grid": {
+        "alpha": [
+          0.5,
+          0.3,
+          0.2,
+          0.1,
+          0.05,
+          0.02,
+          0.01,
+          0.005,
+          0.002,
+          0.001
+        ]
+      }
+    },
+    {
+      "name": "row_diagonal_dominant_tridiagonal",
+      "stochastic": false,
+      "grid": {
+        "alpha": [
+          0.5,
+          0.3,
+          0.2,
+          0.1,
+          0.05,
+          0.02,
+          0.01,
+          0.005,
+          0.002,
+          0.001
+        ]
+      }
+    },
+    {
+      "name": "row_diagonal_dominant_rankone",
+      "stochastic": false,
+      "grid": {
+        "alpha": [
+          0.5,
+          0.3,
+          0.2,
+          0.1,
+          0.05,
+          0.02,
+          0.01,
+          0.005,
+          0.002,
+          0.001
+        ]
+      }
+    },
+    {
+      "name": "row_diagonal_dominant_stochastic",
+      "stochastic": true,
+      "grid": {
+        "alpha": [
+          0.5,
+          0.3,
+          0.2,
+          0.1,
+          0.05,
+          0.02,
+          0.01,
+          0.005,
+          0.002,
+          0.001
+        ]
+      }
+    },
+    {
+      "name": "spd_prescribed_spectrum",
+      "stochastic": true,
+      "grid": {
+        "kappa": [
+          10.0,
+          100.0,
+          1000.0,
+          10000.0,
+          100000.0,
+          1000000.0,
+          10000000.0,
+          100000000.0
+        ]
+      }
+    },
+    {
+      "name": "tnn_vandermonde_positive",
+      "stochastic": false,
+      "grid": {
+        "node_type": [
+          "equispaced_positive",
+          "clustered_positive"
+        ],
+        "cluster_parameter": [
+          2.0
+        ]
+      }
+    },
+    {
+      "name": "pascal",
+      "stochastic": false,
+      "cells": [
+        {}
+      ]
+    }
+  ]
+}

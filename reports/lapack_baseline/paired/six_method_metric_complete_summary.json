@@ -1,0 +1,19 @@
+{
+  "S6_metric_complete": {
+    "float32": 1629883,
+    "float64": 1663993
+  },
+  "S6_success": {
+    "float32": 1629883,
+    "float64": 1663999
+  },
+  "gate": true,
+  "metric_invalid_success_records": 6,
+  "outputs": [
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/six_method_metric_invalid_records.csv",
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/six_method_metric_complete_block_quantiles.csv",
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/six_method_metric_complete_table2_style.csv",
+    "/mnt/home/users/tic_118_uma/frv/castillo_lapack_baseline/results/paired/final/six_method_metric_complete_vs_lapack.csv"
+  ],
+  "selected_matrices": 1664000
+}

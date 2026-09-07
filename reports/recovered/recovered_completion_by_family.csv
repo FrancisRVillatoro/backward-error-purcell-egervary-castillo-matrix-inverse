@@ -1,0 +1,15 @@
+family,expected_matrices,recovered_matrices,completion_fraction
+adversarial_rotation,120,96,0.8
+hilbert,15,12,0.8
+kahan_type,240,194,0.8083333333333333
+pascal,15,12,0.8
+random_conditioned,6600000,5264587,0.797664696969697
+repeated_bad_pivots,135,100,0.7407407407407407
+row_diagonal_dominant_random,3000000,2211491,0.7371636666666667
+row_diagonal_dominant_rankone,150,111,0.74
+row_diagonal_dominant_stochastic,3000000,2211302,0.7371006666666666
+row_diagonal_dominant_tridiagonal,150,120,0.8
+scaled_adversarial,3600000,2752496,0.7645822222222223
+spd_prescribed_spectrum,2400000,1769137,0.7371404166666666
+tnn_vandermonde_positive,30,24,0.8
+vandermonde,600120,477081,0.7949760047990402

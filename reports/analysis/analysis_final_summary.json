@@ -1,0 +1,103 @@
+{
+  "all_recovered_inverse_failures_counted": 327222,
+  "all_recovered_inverse_records_counted": 146867630,
+  "balanced_matrices": 1664000,
+  "bootstrap_original_slope_inside_percentile_interval_fraction": 1.0,
+  "bootstrap_rows": 2560,
+  "bootstrap_tasks": 640,
+  "core_inverse_rows": 128000000,
+  "limitations": [
+    "The complete 20000-replica core ends at n=181.",
+    "The exact balanced extension uses 2000 matrices per stochastic cell through n=512.",
+    "n=724 is not included in the balanced inferential analysis.",
+    "n=1024 is absent from the recovered campaign.",
+    "Bootstrap intervals are percentile cluster-bootstrap intervals; BCa intervals were not used because a 2000-cluster jackknife for every cell/method/precision combination would add disproportionate cost without changing the primary inferential target."
+  ],
+  "maximum_abs_standardized_censoring_difference_excluding_runtime": 0.546675505989708,
+  "maximum_abs_standardized_runtime_difference": 0.48208324736868763,
+  "median_paired_forward_error_ratio_step2_over_step0": 0.4359513106663274,
+  "overall_inverse_failure_rate": 0.0022280062665953008,
+  "slope_summary": [
+    {
+      "cell_count": 64,
+      "dtype_name": "float32",
+      "median_q95_slope": 0.49451855558841273,
+      "method": "R0_C0",
+      "q25_q95_slope": 0.05450943118382927,
+      "q75_q95_slope": 0.9527844329192809
+    },
+    {
+      "cell_count": 64,
+      "dtype_name": "float64",
+      "median_q95_slope": 0.5487410904940823,
+      "method": "R0_C0",
+      "q25_q95_slope": 0.03901208865960911,
+      "q75_q95_slope": 1.4314562245664033
+    },
+    {
+      "cell_count": 64,
+      "dtype_name": "float32",
+      "median_q95_slope": 0.25575014713944233,
+      "method": "R0_C1",
+      "q25_q95_slope": 0.12028352941072673,
+      "q75_q95_slope": 0.4455067181323132
+    },
+    {
+      "cell_count": 64,
+      "dtype_name": "float64",
+      "median_q95_slope": 0.2904322401933068,
+      "method": "R0_C1",
+      "q25_q95_slope": 0.11004145650282585,
+      "q75_q95_slope": 0.45155819660111485
+    },
+    {
+      "cell_count": 64,
+      "dtype_name": "float32",
+      "median_q95_slope": 0.28284496105519563,
+      "method": "R0_C2",
+      "q25_q95_slope": 0.10748846225763296,
+      "q75_q95_slope": 0.477864163470621
+    },
+    {
+      "cell_count": 64,
+      "dtype_name": "float64",
+      "median_q95_slope": 0.3450774684534423,
+      "method": "R0_C2",
+      "q25_q95_slope": 0.08494948463891774,
+      "q75_q95_slope": 0.4858935872176979
+    },
+    {
+      "cell_count": 64,
+      "dtype_name": "float32",
+      "median_q95_slope": 0.22485645819471495,
+      "method": "R1_C1",
+      "q25_q95_slope": 0.08528103959570242,
+      "q75_q95_slope": 0.5855220512404928
+    },
+    {
+      "cell_count": 64,
+      "dtype_name": "float64",
+      "median_q95_slope": 0.23427114461349563,
+      "method": "R1_C1",
+      "q25_q95_slope": 0.08753269380596598,
+      "q75_q95_slope": 0.5909849087245308
+    },
+    {
+      "cell_count": 64,
+      "dtype_name": "float32",
+      "median_q95_slope": 0.2798017410081837,
+      "method": "R2_C2",
+      "q25_q95_slope": 0.08638993370241242,
+      "q75_q95_slope": 0.5842566270594418
+    },
+    {
+      "cell_count": 64,
+      "dtype_name": "float64",
+      "median_q95_slope": 0.29728123889301383,
+      "method": "R2_C2",
+      "q25_q95_slope": 0.08883549317533168,
+      "q75_q95_slope": 0.5841504924333383
+    }
+  ],
+  "status": "CASTILLO_ANALYSIS_COMPLETE"
+}
