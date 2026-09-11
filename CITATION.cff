@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "Please cite this reproducibility archive if you use the data or code."
 title: "Growth, Pivoting, and Backward Error in the Purcell–Egerváry–Castillo Matrix Inverse"
 type: software
-version: 1.0.0
-doi: 10.5281/zenodo.22648665
+version: 1.1.0
+doi: 10.5281/zenodo.22706416
 license: MIT
 authors:
   - given-names: Francisco R.

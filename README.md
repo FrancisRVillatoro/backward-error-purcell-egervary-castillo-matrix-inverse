@@ -10,11 +10,11 @@ This repository contains computational reproducibility material only: source cod
 
 ## Reproducibility archive
 
-Version: **1.0.0**
+Version: **1.1.0**
 
-Reserved Zenodo DOI (registered when the Zenodo record is published):
+Zenodo v1.1.0 DOI:
 
-    10.5281/zenodo.22648665
+    10.5281/zenodo.22706416
 
 ## Repository layout
 
