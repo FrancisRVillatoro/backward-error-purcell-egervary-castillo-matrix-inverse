@@ -4,9 +4,9 @@ import csv,json,math,os,sys,time
 import numpy as np
 from scipy.linalg.lapack import get_lapack_funcs
 
-BASE=Path.home()/"castillo_lapack_baseline"
-SOURCE=BASE/"source"
-ROOT=BASE/"results"/"direct_svd_crosscheck"
+RELEASE_ROOT=Path(os.environ.get("CASTILLO_REPRO_ROOT",str(Path(__file__).resolve().parents[2]))).resolve()
+SOURCE=RELEASE_ROOT
+ROOT=Path(os.environ.get("CASTILLO_DIRECT_SVD_WORKDIR",str(RELEASE_ROOT/"work"/"direct_svd_crosscheck"))).resolve()
 MANIFEST=ROOT/"direct_svd_validation_manifest.csv"
 TASKS=ROOT/"tasks"
 METHODS=("R0_C0","R0_C1","R0_C2","R1_C1","R2_C2")

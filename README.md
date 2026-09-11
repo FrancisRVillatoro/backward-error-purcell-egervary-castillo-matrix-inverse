@@ -10,20 +10,23 @@ This repository contains computational reproducibility material only: source cod
 
 ## Reproducibility archive
 
-Version: **1.1.0**
+Version: **1.1.1**
 
-Zenodo v1.1.0 DOI:
+Zenodo v1.1.1 DOI:
 
-    10.5281/zenodo.22706416
+    10.5281/zenodo.22708020
 
 ## Repository layout
 
 - `code/` — numerical algorithms and analysis programs.
 - `code/lapack_baseline/` — LAPACK explicit-inverse baseline and paired analysis.
 - `code/validation/` — spectral-estimator validation.
+- `code/direct_svd/` — portable prespecified direct-SVD follow-up audit.
 - `config/` — computational configurations.
+- `data/direct_svd_selection/` — exact balanced-selection inputs (included in the Zenodo archive).
 - `slurm/` — Slurm execution scripts.
 - `reports/` — numerical reports, certificates, and validation summaries.
+- `results/direct_svd_crosscheck/` — preserved task-level direct-SVD outputs (included in the Zenodo archive).
 - `release_tools/` — reproducibility verification tools.
 
 ## Licenses

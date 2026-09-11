@@ -3,15 +3,16 @@ from pathlib import Path
 from collections import Counter
 import csv
 import json
+import os
 import numpy as np
 
-BASE = Path.home() / "castillo_lapack_baseline"
-SOURCE = BASE / "source"
-SELDIR = BASE / "exact_balanced_selection" / "selection"
-ROOT = BASE / "results" / "direct_svd_crosscheck"
+RELEASE_ROOT = Path(os.environ.get("CASTILLO_REPRO_ROOT", str(Path(__file__).resolve().parents[2]))).resolve()
+SOURCE = RELEASE_ROOT
+SELDIR = RELEASE_ROOT / "data" / "direct_svd_selection" / "selection"
+ROOT = Path(os.environ.get("CASTILLO_DIRECT_SVD_WORKDIR", str(RELEASE_ROOT / "work" / "direct_svd_crosscheck"))).resolve()
 OUT = ROOT / "direct_svd_validation_manifest.csv"
 META = ROOT / "direct_svd_validation_manifest.json"
-SUMMARY = BASE / "exact_balanced_selection" / "summaries" / "selection_summary_release.json"
+SUMMARY = RELEASE_ROOT / "data" / "direct_svd_selection" / "summaries" / "selection_summary_release.json"
 
 RANKS = (0, 1000, 1999)
 EXPECTED_SELECTION_FILES = 999

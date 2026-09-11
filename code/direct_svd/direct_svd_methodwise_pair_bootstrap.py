@@ -6,8 +6,9 @@ import math
 import sys
 import numpy as np
 
-BASE = Path.home() / "castillo_lapack_baseline"
-ROOT = BASE / "results" / "direct_svd_crosscheck"
+import os
+RELEASE_ROOT = Path(os.environ.get("CASTILLO_REPRO_ROOT", str(Path(__file__).resolve().parents[2]))).resolve()
+ROOT = Path(os.environ.get("CASTILLO_DIRECT_SVD_WORKDIR", str(RELEASE_ROOT / "work" / "direct_svd_crosscheck"))).resolve()
 TASKS = ROOT / "tasks"
 FINAL = ROOT / "final"
 
